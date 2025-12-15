@@ -1,0 +1,8 @@
+Project: Electrical Products E-Commerce
+Frontend: React + Tailwind CSS
+Backend: Node + Express
+Database: MongoDB
+
+Products:
+- MCB
+- Metal Enclosure
