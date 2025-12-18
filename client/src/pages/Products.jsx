@@ -39,23 +39,16 @@ function Products() {
                   {product.brand}
                 </p>
                 
-                {product.price > 0 ? (
-                    <p className="font-bold text-sm">
-                        {product.currency} {product.price}
-                    </p>
-                ) : (
-                    <p className="text-sm font-medium text-gray-600">
-                        Price on request
-                    </p>
-                )}
-                
-                {product.price <= 0 && (
-                    <Link to="/" state={{ quote: true }}
-                    className="mt-2 inline-block text-sm text-orange-600 font-medium"
-                    >
-                        Request a Quote
-                    </Link>
-                )}
+                {product.pricingType === "FIXED" ? (
+  <p className="font-bold text-sm">
+    {product.currency} {product.price}
+  </p>
+) : (
+  <p className="text-sm font-medium text-gray-600">
+    Price on request
+  </p>
+)}
+
 
 
               </div>

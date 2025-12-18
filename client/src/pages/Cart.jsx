@@ -78,7 +78,7 @@ function Cart() {
                   </p>
 
                   <button
-                    onClick={() => removeFromCart(index)}
+                    onClick={() => removeFromCart(item._id)}
                     className="text-sm text-red-600 hover:underline"
                   >
                     Remove
