@@ -1,13 +1,13 @@
+import "./config/env.js"; // MUST be first import
+
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 
 import connectDB from "./config/db.js";
 import productRoutes from "./routes/productRoutes.js";
 import quoteRoutes from "./routes/quoteRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
 
-dotenv.config();
 console.log(
   Object.keys(process.env)
     .filter(k => k.toLowerCase().includes("email"))

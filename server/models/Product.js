@@ -9,8 +9,23 @@ const productSchema = new mongoose.Schema(
 
     description: String,
 
-    price: Number,
-    currency: String,
+    pricingType: {
+  type: String,
+  enum: ["FIXED", "QUOTE"],
+  required: true,
+  default: "QUOTE",
+},
+
+price: {
+  type: Number,
+  default: null,
+},
+
+currency: {
+  type: String,
+  default: "INR",
+},
+
 
     stockStatus: String,
 
