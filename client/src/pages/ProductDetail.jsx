@@ -2,6 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { fetchProductById } from "../services/api";
 import { useCart } from "../context/CartContext";
+import { TEST_MODE } from "../services/config";
 
 function ProductDetail() {
   const { id } = useParams();
@@ -18,6 +19,9 @@ function ProductDetail() {
   if (!product) {
     return <p className="p-6">Loading product...</p>;
   }
+
+  const canAddToCart = TEST_MODE || product.price > 0;
+  const displayPrice = product.price > 0 ? product.price : 100; // fake test price
 
   return (
     <div className="p-6 max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -41,15 +45,21 @@ function ProductDetail() {
           Brand: {product.brand || "N/A"}
         </p>
 
-        {/* PRICE / QUOTE LOGIC */}
-        {product.price > 0 ? (
+        {canAddToCart ? (
           <>
             <p className="text-xl font-semibold mb-4">
-              {product.currency} {product.price}
+              {product.currency} {displayPrice}
+              {TEST_MODE && (
+                <span className="text-xs text-gray-500 ml-2">
+                  (test price)
+                </span>
+              )}
             </p>
 
             <button
-              onClick={() => addToCart(product)}
+              onClick={() =>
+                addToCart({ ...product, price: displayPrice })
+              }
               className="px-6 py-2 bg-purple-700 text-white rounded hover:opacity-90"
             >
               Add to Cart
@@ -62,13 +72,11 @@ function ProductDetail() {
             </p>
 
             <button
-   onClick={() => navigate("/", { state: { quote: true } })}
-
-  className="px-6 py-2 bg-orange-600 text-white rounded hover:opacity-90"
->
-  Request a Quote
-</button>
-
+              onClick={() => navigate("/", { state: { quote: true } })}
+              className="px-6 py-2 bg-orange-600 text-white rounded hover:opacity-90"
+            >
+              Request a Quote
+            </button>
           </>
         )}
 
@@ -78,7 +86,6 @@ function ProductDetail() {
           </p>
         )}
       </div>
-
     </div>
   );
 }

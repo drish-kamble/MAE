@@ -4,8 +4,16 @@ import dotenv from "dotenv";
 
 import connectDB from "./config/db.js";
 import productRoutes from "./routes/productRoutes.js";
+import quoteRoutes from "./routes/quoteRoutes.js";
+import orderRoutes from "./routes/orderRoutes.js";
 
 dotenv.config();
+console.log(
+  Object.keys(process.env)
+    .filter(k => k.toLowerCase().includes("email"))
+    .map(k => JSON.stringify(k))
+);
+
 
 const app = express();
 
@@ -18,6 +26,8 @@ connectDB();
 
 // routes
 app.use("/api/products", productRoutes);
+app.use("/api/quotes", quoteRoutes);
+app.use("/api/orders", orderRoutes);
 
 // test route
 app.get("/", (req, res) => {

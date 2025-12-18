@@ -1,33 +1,65 @@
-function QuoteForm({ highlighted }) {
+import { useState } from "react";
+
+function QuoteForm() {
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    company: "",
+    message: "",
+  });
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    await fetch("http://localhost:5000/api/quotes", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(form),
+    });
+
+    alert("Quote request submitted successfully!");
+    setForm({ name: "", email: "", company: "", message: "" });
+  };
+
   return (
-    <form
-      className={`space-y-4 p-6 rounded ${
-        highlighted ? "ring-2 ring-orange-500 bg-white" : ""
-      }`}
-    >
+    <form onSubmit={handleSubmit} className="space-y-4">
       <input
-        type="text"
+        name="name"
         placeholder="Your Name"
+        value={form.name}
+        onChange={handleChange}
         className="w-full border p-3 rounded"
         required
       />
 
       <input
+        name="email"
         type="email"
         placeholder="Your Email"
+        value={form.email}
+        onChange={handleChange}
         className="w-full border p-3 rounded"
         required
       />
 
       <input
-        type="text"
+        name="company"
         placeholder="Company Name"
+        value={form.company}
+        onChange={handleChange}
         className="w-full border p-3 rounded"
       />
 
       <textarea
-        placeholder="Product / Requirement Details"
+        name="message"
+        placeholder="Your Requirement"
         rows="4"
+        value={form.message}
+        onChange={handleChange}
         className="w-full border p-3 rounded"
       />
 
