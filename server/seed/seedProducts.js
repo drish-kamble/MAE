@@ -23,6 +23,7 @@ const seedFromExcel = async () => {
       const productData = {
         name: String(row["Product Name"]).trim(),
         modelNumber: String(row["Model Number"] || "").trim(),
+         partNumber: String(row["Part Number"] || row["Model Number"]), // ✅ ADD
         brand: row["Brand"] || "",
         productType: row["Product Type"] || "",
         description: row["Short Description"] || "",

@@ -1,11 +1,13 @@
 import { useState } from "react";
 
-function QuoteForm() {
+function QuoteForm({ productName = "", productId = "" }) {
   const [form, setForm] = useState({
     name: "",
     email: "",
     company: "",
-    message: "",
+    message: productName
+      ? `Product: ${productName}\n\n`
+      : "",
   });
 
   const handleChange = (e) => {
@@ -18,7 +20,26 @@ function QuoteForm() {
     await fetch("http://localhost:5000/api/quotes", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      body: JSON.stringify({
+  customer: {
+    name: form.name,
+    email: form.email,
+    company: form.company,
+  },
+  message: form.message, // ✅ ADD THIS
+  items: productId
+    ? [
+        {
+          productId,
+          name: productName,
+          partNumber: "—",
+          quantity: 1,
+        },
+      ]
+    : [],
+}),
+
+
     });
 
     alert("Quote request submitted successfully!");
@@ -27,6 +48,14 @@ function QuoteForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+
+      {productName && (
+        <p className="text-sm text-gray-600">
+          Requesting quote for:{" "}
+          <span className="font-semibold">{productName}</span>
+        </p>
+      )}
+
       <input
         name="name"
         placeholder="Your Name"

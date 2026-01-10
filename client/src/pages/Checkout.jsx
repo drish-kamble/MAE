@@ -1,157 +1,134 @@
 import { useCart } from "../context/CartContext";
-import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 function Checkout() {
-  const { cartItems, clearCart  } = useCart();
+  const { cartItems, clearCart } = useCart();
   const navigate = useNavigate();
+
+  const [placingOrder, setPlacingOrder] = useState(false);
+  const [error, setError] = useState("");
+  const [currency, setCurrency] = useState("INR");
+
   const [customer, setCustomer] = useState({
-  name: "",
-  email: "",
-  phone: "",
-  address: "",
-});
-
-
-  const cartTotal = cartItems.reduce(
-    (total, item) => total + item.price * item.quantity,
-    0
-  );
+    name: "",
+    email: "",
+    phone: "",
+    address: "",
+  });
 
   if (cartItems.length === 0) {
-    return (
-      <div className="p-6 text-center">
-        <p>Your cart is empty.</p>
-      </div>
-    );
+    return <p className="p-6 text-center">Your cart is empty.</p>;
   }
+
+  const isFormValid = () =>
+    customer.name &&
+    customer.email &&
+    customer.phone &&
+    customer.address;
+
   const placeOrder = async () => {
-  try {
-    const orderData = {
-      customer,
-      items: cartItems.map((item) => ({
-        productId: item._id,
-        name: item.name,
-        brand: item.brand,
-        quantity: item.quantity,
-      })),
-    };
-
-    const res = await fetch("http://localhost:5000/api/orders", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(orderData),
-    });
-
-    if (!res.ok) {
-      throw new Error("Order failed");
+    if (!isFormValid()) {
+      setError("Please fill all required fields");
+      return;
     }
 
-    clearCart();
-    alert("Order placed successfully!");
-    navigate("/");
+    try {
+      setPlacingOrder(true);
+      setError("");
 
-  } catch (error) {
-    console.error(error);
-    alert("Failed to place order. Please try again.");
-  }
-};
+      const res = await fetch("http://localhost:5000/api/orders", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({
+          customer,
+          currency,
+          items: cartItems.map((item) => ({
+            productId: item._id,
+            quantity: item.quantity,
+          })),
+        }),
+      });
 
+      const order = await res.json();
+      if (!res.ok) throw new Error(order.message || "Order failed");
+
+      clearCart();
+      navigate("/order-success", { state: { order } });
+    } catch (err) {
+      setError(err.message || "Order failed");
+    } finally {
+      setPlacingOrder(false);
+    }
+  };
 
   return (
-    <div className="p-6 max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div className="p-6 max-w-4xl mx-auto">
+      <h2 className="text-xl font-bold mb-6">Checkout</h2>
 
-      {/* CUSTOMER DETAILS */}
-      <div className="border rounded-lg p-6">
-        <h2 className="text-xl font-bold mb-4">
-          Customer Details
-        </h2>
-
-        <form className="space-y-4">
-          <input
-  type="text"
-  placeholder="Full Name"
-  className="w-full border p-2 rounded"
-  value={customer.name}
-  onChange={(e) =>
-    setCustomer({ ...customer, name: e.target.value })
-  }
-  required
-/>
-
-
-          <input
-  type="email"
-  placeholder="Email"
-  className="w-full border p-2 rounded"
-  value={customer.email}
-  onChange={(e) =>
-    setCustomer({ ...customer, email: e.target.value })
-  }
-  required
-/>
-
-
-          <input
-  type="text"
-  placeholder="Phone Number"
-  className="w-full border p-2 rounded"
-  value={customer.phone}
-  onChange={(e) =>
-    setCustomer({ ...customer, phone: e.target.value })
-  }
-/>
-
-
-          <textarea
-  placeholder="Delivery Address"
-  rows="4"
-  className="w-full border p-2 rounded"
-  value={customer.address}
-  onChange={(e) =>
-    setCustomer({ ...customer, address: e.target.value })
-  }
-/>
-
-        </form>
+      {/* CUSTOMER FORM */}
+      <div className="grid gap-4 mb-6">
+        <input
+          placeholder="Full Name"
+          className="border p-3 rounded"
+          value={customer.name}
+          onChange={(e) =>
+            setCustomer({ ...customer, name: e.target.value })
+          }
+        />
+        <input
+          type="email"
+          placeholder="Email Address"
+          className="border p-3 rounded"
+          value={customer.email}
+          onChange={(e) =>
+            setCustomer({ ...customer, email: e.target.value })
+          }
+        />
+        <input
+          placeholder="Phone Number"
+          className="border p-3 rounded"
+          value={customer.phone}
+          onChange={(e) =>
+            setCustomer({ ...customer, phone: e.target.value })
+          }
+        />
+        <textarea
+          placeholder="Delivery Address"
+          className="border p-3 rounded"
+          rows="3"
+          value={customer.address}
+          onChange={(e) =>
+            setCustomer({ ...customer, address: e.target.value })
+          }
+        />
       </div>
 
-      {/* ORDER SUMMARY */}
-      <div className="border rounded-lg p-6 bg-gray-50">
-        <h2 className="text-xl font-bold mb-4">
-          Order Summary
-        </h2>
+      {/* CURRENCY */}
+      <select
+        value={currency}
+        onChange={(e) => setCurrency(e.target.value)}
+        className="border p-3 rounded w-full mb-4"
+      >
+        <option value="INR">INR – India</option>
+        <option value="USD">USD – USA</option>
+        <option value="EUR">EUR – Europe</option>
+        <option value="GBP">GBP – UK</option>
+        <option value="SGD">SGD – Singapore</option>
+      </select>
 
-        <ul className="space-y-2 mb-4">
-          {cartItems.map((item) => (
-            <li
-              key={item._id}
-              className="flex justify-between text-sm"
-            >
-              <span>
-                {item.name} × {item.quantity}
-              </span>
-              <span>
-                ₹ {item.price * item.quantity}
-              </span>
-            </li>
-          ))}
-        </ul>
+      {error && <p className="text-red-600 mb-3">{error}</p>}
 
-        <div className="flex justify-between font-semibold text-lg border-t pt-4">
-          <span>Total</span>
-          <span>₹ {cartTotal}</span>
-        </div>
-
-        <button
-          onClick={placeOrder}
-          className="w-full mt-6 bg-purple-700 text-white py-2 rounded hover:opacity-90"
-        >
-          Place Order
-        </button>
-      </div>
+      <button
+        onClick={placeOrder}
+        disabled={placingOrder || !isFormValid()}
+        className="w-full bg-purple-700 text-white py-3 rounded"
+      >
+        {placingOrder ? "Placing Order..." : "Place Order"}
+      </button>
     </div>
   );
 }

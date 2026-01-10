@@ -4,6 +4,7 @@ import QuoteForm from "../components/QuoteForm";
 
 function Home() {
   const location = useLocation();
+  const productName = location.state?.productName || "";
   const quoteRef = useRef(null);
 
   // 🔥 THIS IS THE KEY PART
@@ -76,7 +77,11 @@ function Home() {
               Request a Quote
             </h2>
 
-            <QuoteForm />
+            <QuoteForm
+  productName={productName}
+  productId={location.state?.productId}
+/>
+
           </div>
         </section>
 

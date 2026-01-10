@@ -26,6 +26,11 @@ currency: {
   default: "INR",
 },
 
+partNumber: {
+  type: String,
+  required: true,
+  unique: true,
+},
 
     stockStatus: String,
 
