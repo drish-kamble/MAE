@@ -1,4 +1,4 @@
-const API_BASE = "https://mae-3qhelnzul-drish-kambles-projects.vercel.app/";
+const API_BASE = "https://mae-3qhelnzul-drish-kambles-projects.vercel.app";
 
 /* ---------------- DEFAULT OPTIONS ---------------- */
 const defaultOptions = {
