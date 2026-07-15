@@ -29,7 +29,9 @@ app.use(
    ===================================================== */
 app.use(
   cors({
-    origin: "http://localhost:5173", // 🔥 frontend URL
+    origin: ["http://localhost:5173", // 🔥 frontend URL
+     "https://mae-red.vercel.app"
+        ],
     credentials: true, // 🔥 allow cookies
   })
 );
@@ -81,3 +83,4 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
 });
+app.options("*", cors());
