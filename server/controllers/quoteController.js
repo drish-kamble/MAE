@@ -5,12 +5,23 @@ import { sendClientQuoteEmail } from "../utils/emails/clientEmails.js";
 /* ================= CREATE QUOTE ================= */
 export const createQuote = async (req, res) => {
   try {
-    const quote = new Quote(req.body);
+    // 🧠 FormData sends strings → parse JSON
+    const data =
+  req.body.data
+    ? JSON.parse(req.body.data) // FormData request
+    : req.body;                 // JSON request
+
+    const quote = new Quote({
+      ...data,
+      // 📎 save file path if uploaded
+      attachment: req.file ? req.file.path : null,
+    });
+
     await quote.save();
 
     // 🔔 EMAILS (NON-BLOCKING)
     sendAdminQuoteEmail(quote).catch(console.error);
-sendClientQuoteEmail(quote).catch(console.error);
+    sendClientQuoteEmail(quote).catch(console.error);
 
     res.status(201).json({
       message: "Quote submitted successfully",

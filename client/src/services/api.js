@@ -1,22 +1,24 @@
 const API_BASE = "http://localhost:5000/api";
 
-export const getAuthHeaders = () => {
-  const token = localStorage.getItem("token");
-
-  return token
-    ? {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      }
-    : {
-        "Content-Type": "application/json",
-      };
+/* ---------------- DEFAULT OPTIONS ---------------- */
+const defaultOptions = {
+  credentials: "include",
+  headers: {
+    "Content-Type": "application/json",
+  },
 };
 
 /* ---------------- PRODUCTS ---------------- */
 
-export const fetchProducts = async () => {
-  const res = await fetch(`${API_BASE}/products`);
+export const fetchProducts = async ({
+  search = "",
+  type = "ALL",
+  page = 1,
+}) => {
+  const res = await fetch(
+    `${API_BASE}/products?search=${search}&type=${type}&page=${page}`
+  );
+
   return res.json();
 };
 
@@ -30,7 +32,7 @@ export const fetchProductById = async (id) => {
 export const loginUser = async (data) => {
   const res = await fetch(`${API_BASE}/auth/login`, {
     method: "POST",
-    headers: getAuthHeaders(),
+    ...defaultOptions,
     body: JSON.stringify(data),
   });
 
@@ -40,8 +42,17 @@ export const loginUser = async (data) => {
 export const registerUser = async (data) => {
   const res = await fetch(`${API_BASE}/auth/register`, {
     method: "POST",
-    headers: getAuthHeaders(),
+    ...defaultOptions,
     body: JSON.stringify(data),
+  });
+
+  return res.json();
+};
+
+export const logoutUser = async () => {
+  const res = await fetch(`${API_BASE}/auth/logout`, {
+    method: "POST",
+    ...defaultOptions,
   });
 
   return res.json();
@@ -52,7 +63,7 @@ export const registerUser = async (data) => {
 export const createOrder = async (orderData) => {
   const res = await fetch(`${API_BASE}/orders`, {
     method: "POST",
-    headers: getAuthHeaders(),
+    ...defaultOptions,
     body: JSON.stringify(orderData),
   });
 
@@ -63,15 +74,19 @@ export const createOrder = async (orderData) => {
 
 export const fetchMyOrders = async () => {
   const res = await fetch(`${API_BASE}/orders/my`, {
-    headers: getAuthHeaders(),
+    ...defaultOptions,
   });
   return res.json();
 };
 
 export const fetchOrderById = async (id) => {
   const res = await fetch(`${API_BASE}/orders/${id}`, {
-    headers: getAuthHeaders(),
+    ...defaultOptions,
   });
   return res.json();
 };
 
+export const fetchProductTypes = async () => {
+  const res = await fetch(`${API_BASE}/products/types`);
+  return res.json();
+};

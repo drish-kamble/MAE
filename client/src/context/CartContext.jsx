@@ -1,28 +1,28 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 
 const CartContext = createContext();
 
 export function CartProvider({ children }) {
-  const [cartItems, setCartItems] = useState([]);
+  // ✅ Load from localStorage
+  const [cartItems, setCartItems] = useState(() => {
+    const saved = localStorage.getItem("cart");
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  // ✅ Save to localStorage
+  useEffect(() => {
+    localStorage.setItem("cart", JSON.stringify(cartItems));
+  }, [cartItems]);
 
   const addToCart = (product) => {
-    // SAFETY: Only allow FIXED price products
-    if (product.pricingType !== "FIXED") {
-      console.warn(
-        "Attempted to add non-orderable product to cart:",
-        product
-      );
-      return;
-    }
+    if (product.pricingType !== "FIXED") return;
 
     setCartItems((prev) => {
-      const existingIndex = prev.findIndex(
-        (item) => item._id === product._id
-      );
+      const existing = prev.find((item) => item._id === product._id);
 
-      if (existingIndex !== -1) {
-        return prev.map((item, index) =>
-          index === existingIndex
+      if (existing) {
+        return prev.map((item) =>
+          item._id === product._id
             ? { ...item, quantity: item.quantity + 1 }
             : item
         );
@@ -60,9 +60,7 @@ export function CartProvider({ children }) {
     );
   };
 
-  const clearCart = () => {
-    setCartItems([]);
-  };
+  const clearCart = () => setCartItems([]);
 
   return (
     <CartContext.Provider

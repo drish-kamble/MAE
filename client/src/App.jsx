@@ -38,7 +38,7 @@ function App() {
               <Route path="/order-success" element={<OrderSuccess />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/quote" element={<Quote />} />
-
+              
 
               <Route
                 path="/checkout"

@@ -1,5 +1,5 @@
 import "./config/env.js";
-
+import cookieParser from "cookie-parser";
 import express from "express";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
@@ -25,17 +25,24 @@ app.use(
 );
 
 /* =====================================================
-   🌍 NORMAL MIDDLEWARE
+   🌍 NORMAL MIDDLEWARE (FIXED ✅)
    ===================================================== */
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:5173", // 🔥 frontend URL
+    credentials: true, // 🔥 allow cookies
+  })
+);
+
+app.use(cookieParser()); // 🔥 MUST be before routes
 app.use(express.json());
 
 /* =====================================================
    🚦 RATE LIMITING (AUTH + PAYMENTS)
    ===================================================== */
 const sensitiveLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // requests per IP
+  windowMs: 15 * 60 * 1000,
+  max: 100,
   standardHeaders: true,
   legacyHeaders: false,
 });

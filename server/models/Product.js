@@ -10,27 +10,27 @@ const productSchema = new mongoose.Schema(
     description: String,
 
     pricingType: {
-  type: String,
-  enum: ["FIXED", "QUOTE"],
-  required: true,
-  default: "QUOTE",
-},
+      type: String,
+      enum: ["FIXED", "QUOTE"],
+      required: true,
+      default: "QUOTE",
+    },
 
-price: {
-  type: Number,
-  default: null,
-},
+    price: {
+      type: Number,
+      default: null,
+    },
 
-currency: {
-  type: String,
-  default: "INR",
-},
+    currency: {
+      type: String,
+      default: "INR",
+    },
 
-partNumber: {
-  type: String,
-  required: true,
-  unique: true,
-},
+    partNumber: {
+      type: String,
+      required: true,
+      unique: true,
+    },
 
     stockStatus: String,
 
@@ -38,10 +38,12 @@ partNumber: {
     image: String,
 
     hsnCode: String,
-    gstRate: Number
+    gstRate: Number,   // ✅ comma added
+
+    sequence: Number,  // ✅ your new field
   },
   {
-    timestamps: true
+    timestamps: true,
   }
 );
 

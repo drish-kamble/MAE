@@ -2,6 +2,23 @@ import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
+/* ================= TOKEN HELPERS ================= */
+const generateAccessToken = (user) => {
+  return jwt.sign(
+    { id: user._id, role: user.role },
+    process.env.JWT_SECRET,
+    { expiresIn: "15m" } // short life
+  );
+};
+
+const generateRefreshToken = (user) => {
+  return jwt.sign(
+    { id: user._id },
+    process.env.JWT_REFRESH_SECRET,
+    { expiresIn: "7d" }
+  );
+};
+
 /* ================= REGISTER ================= */
 export const registerUser = async (req, res) => {
   try {
@@ -11,15 +28,38 @@ export const registerUser = async (req, res) => {
       password,
       phone,
       company,
+      companyAddress,
       city,
       state,
+      country,
     } = req.body;
 
-    // ---------- VALIDATION (REAL LIFE) ----------
+    // ✅ VALIDATIONS
     if (!name || name.length < 2) {
       return res.status(400).json({
         success: false,
         message: "Name is required",
+      });
+    }
+
+    if (!company || company.trim() === "") {
+      return res.status(400).json({
+        success: false,
+        message: "Company is required",
+      });
+    }
+
+    if (!companyAddress || companyAddress.trim() === "") {
+      return res.status(400).json({
+        success: false,
+        message: "Company address is required",
+      });
+    }
+
+    if (!country || country.trim() === "") {
+      return res.status(400).json({
+        success: false,
+        message: "Country is required",
       });
     }
 
@@ -32,28 +72,23 @@ export const registerUser = async (req, res) => {
     }
 
     const strongPasswordRegex =
-  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
 
-if (!password || !strongPasswordRegex.test(password)) {
-  return res.status(400).json({
-    success: false,
-    message:
-      "Password must be at least 8 characters and include uppercase, lowercase, number, and special character",
-  });
-}
-
+    if (!password || !strongPasswordRegex.test(password)) {
+      return res.status(400).json({
+        success: false,
+        message: "Weak password",
+      });
+    }
 
     const phoneRegex = /^\+[1-9]\d{7,14}$/;
+    if (!phone || !phoneRegex.test(phone)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid phone",
+      });
+    }
 
-if (!phone || !phoneRegex.test(phone)) {
-  return res.status(400).json({
-    success: false,
-    message: "Phone number must include country code (e.g. +14155552671)",
-  });
-}
-
-
-    // ---------- CHECK EXISTING USER ----------
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({
@@ -62,25 +97,26 @@ if (!phone || !phoneRegex.test(phone)) {
       });
     }
 
-    // ---------- CREATE USER ----------
+    // ✅ CREATE USER
     await User.create({
       name,
       email,
-      password, // auto-hashed in model
+      password,
       phone,
-      company: company || "",
+      company,
+      companyAddress,
       city: city || "",
       state: state || "",
+      country,
     });
 
-    // ---------- RESPONSE ----------
     return res.status(201).json({
       success: true,
       message: "Registered successfully",
     });
 
   } catch (error) {
-    console.error("Register error:", error);
+    console.error("REGISTER ERROR:", error);
     return res.status(500).json({
       success: false,
       message: "Registration failed",
@@ -90,63 +126,137 @@ if (!phone || !phoneRegex.test(phone)) {
 
 /* ================= LOGIN ================= */
 export const loginUser = async (req, res) => {
+  console.log("LOGIN HIT 🔥");
   try {
     const { email, password } = req.body;
 
-    // ---------- VALIDATION ----------
     if (!email || !password) {
       return res.status(400).json({
-        success: false,
         message: "Email and password required",
       });
     }
 
-    // ---------- FIND USER ----------
     const user = await User.findOne({ email });
-    if (!user) {
+
+    if (!user || !(await bcrypt.compare(password, user.password))) {
       return res.status(400).json({
-        success: false,
         message: "Invalid credentials",
       });
     }
 
-    // ---------- CHECK PASSWORD ----------
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid credentials",
-      });
-    }
+    // 🔐 TOKENS
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user);
 
-    // ---------- TOKEN ----------
-    const token = jwt.sign(
-      { id: user._id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: "1d" } // safer than 7d
-    );
+    // 💾 save refresh token
+    user.refreshToken = refreshToken;
+    await user.save();
 
-    // ---------- RESPONSE ----------
+    // 🍪 SET COOKIES
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+      maxAge: 15 * 60 * 1000,
+    });
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
     return res.json({
       success: true,
-      token,
       user: {
         id: user._id,
         name: user.name,
         email: user.email,
-        phone: user.phone,
-        company: user.company,
-        city: user.city,
-        state: user.state,
         role: user.role,
       },
     });
 
   } catch (error) {
-    console.error("Login error:", error);
+      console.error("LOGIN ERROR ❌:", error);
     return res.status(500).json({
-      success: false,
       message: "Login failed",
+    });
+  }
+};
+
+/* ================= REFRESH TOKEN ================= */
+export const refreshAccessToken = async (req, res) => {
+  try {
+    const token = req.cookies.refreshToken;
+
+    if (!token) {
+      return res.status(401).json({
+        message: "No refresh token",
+      });
+    }
+
+    // 🔍 verify token
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_REFRESH_SECRET
+    );
+
+    const user = await User.findById(decoded.id);
+
+    // ❌ invalid / stolen token
+    if (!user || user.refreshToken !== token) {
+      return res.status(403).json({
+        message: "Invalid refresh token",
+      });
+    }
+
+    // 🔐 generate new access token
+    const newAccessToken = generateAccessToken(user);
+
+    // 🍪 update cookie
+    res.cookie("accessToken", newAccessToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+      maxAge: 15 * 60 * 1000,
+    });
+
+    return res.json({ success: true });
+
+  } catch (error) {
+    return res.status(403).json({
+      message: "Token expired",
+    });
+  }
+};
+
+/* ================= LOGOUT ================= */
+export const logoutUser = async (req, res) => {
+  try {
+    const token = req.cookies.refreshToken;
+
+    if (token) {
+      const user = await User.findOne({ refreshToken: token });
+
+      if (user) {
+        user.refreshToken = null; // ❌ destroy session
+        await user.save();
+      }
+    }
+
+    // 🧹 clear cookies
+    res.clearCookie("accessToken");
+    res.clearCookie("refreshToken");
+
+    return res.json({
+      success: true,
+      message: "Logged out successfully",
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      message: "Logout failed",
     });
   }
 };

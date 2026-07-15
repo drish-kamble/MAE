@@ -38,7 +38,12 @@ export const sendAdminQuoteEmail = async (quote) => {
   await transporter.sendMail({
     from: `"MAE Electricals" <${EMAIL_CONFIG.user}>`,
     to: EMAIL_CONFIG.staff,
+
+    // ✅ ADDED (customer in CC)
+    cc: quote.customer?.email,
+
     subject: `New Quote Request — ${quote.customer?.name || "Customer"}`,
+
     html: `
       <div style="font-family:Arial,Helvetica,sans-serif;background:#f4f6f8;padding:24px;">
         <div style="max-width:720px;margin:auto;background:#ffffff;padding:24px;border-radius:6px;border:1px solid #e5e7eb;">
@@ -48,6 +53,12 @@ export const sendAdminQuoteEmail = async (quote) => {
           <p><strong>Name:</strong> ${quote.customer?.name || "—"}</p>
           <p><strong>Email:</strong> ${quote.customer?.email || "—"}</p>
           <p><strong>Company:</strong> ${quote.customer?.company || "—"}</p>
+
+          ${
+            quote.yourReference
+              ? `<p><strong>Reference:</strong> ${quote.yourReference}</p>`
+              : ""
+          }
 
           ${
             hasMessage
@@ -80,6 +91,16 @@ ${quote.message}
         </div>
       </div>
     `,
+
+    // ✅ ADDED (attachment)
+    attachments: quote.attachment
+      ? [
+          {
+            filename: quote.attachment.split("/").pop(),
+            path: quote.attachment,
+          },
+        ]
+      : [],
   });
 };
 
@@ -116,15 +137,6 @@ export const sendAdminOrderEmail = async (order) => {
           <h3 style="margin-top:24px;">Ordered Items</h3>
 
           <table style="width:100%;border-collapse:collapse;font-size:14px;">
-            <thead>
-              <tr style="background:#f9fafb;">
-                <th style="padding:8px;border:1px solid #e5e7eb;">Product</th>
-                <th style="padding:8px;border:1px solid #e5e7eb;">Part No</th>
-                <th style="padding:8px;border:1px solid #e5e7eb;">Qty</th>
-                <th style="padding:8px;border:1px solid #e5e7eb;">Unit</th>
-                <th style="padding:8px;border:1px solid #e5e7eb;">Total</th>
-              </tr>
-            </thead>
             <tbody>${itemsHtml}</tbody>
           </table>
         </div>

@@ -29,7 +29,17 @@ const quoteSchema = new mongoose.Schema(
     },
 
     message: {
-      type: String, // ✅ ADD THIS
+      type: String,
+    },
+
+    // ✅ NEW
+    yourReference: {
+      type: String,
+    },
+
+    // ✅ NEW (store file path)
+    attachment: {
+      type: String,
     },
 
     items: [quoteItemSchema],

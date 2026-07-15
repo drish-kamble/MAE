@@ -15,13 +15,9 @@ function Quote() {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  // 🔁 Redirect to home after success (5 seconds)
   useEffect(() => {
     if (success) {
-      const timer = setTimeout(() => {
-        navigate("/");
-      }, 5000);
-
+      const timer = setTimeout(() => navigate("/"), 5000);
       return () => clearTimeout(timer);
     }
   }, [success, navigate]);
@@ -54,116 +50,155 @@ function Quote() {
 
       clearQuote();
       setSuccess(true);
-    } catch (err) {
+    } catch {
       alert("Failed to submit quote");
     } finally {
       setSubmitting(false);
     }
   };
 
-  // ✅ SUCCESS SCREEN
+  // ✅ SUCCESS
   if (success) {
     return (
-      <div className="p-6 text-center">
-        <h2 className="text-2xl font-semibold mb-2">
-          ✅ Quote Submitted
-        </h2>
-        <p className="text-gray-600">
-          Our team will contact you shortly.
-        </p>
-        <p className="text-sm text-gray-500 mt-2">
-          Redirecting to home page in 5 seconds...
-        </p>
+      <div className="min-h-[80vh] flex items-center justify-center pt-28 bg-gradient-to-b from-gray-50 to-white">
+        <div className="bg-white shadow-xl rounded-3xl p-10 text-center max-w-md border border-gray-100">
+          <h2 className="text-3xl font-bold text-green-600 mb-3">
+            Quote Submitted 🎉
+          </h2>
+          <p className="text-gray-600">
+            Our team will contact you shortly.
+          </p>
+          <p className="text-sm text-gray-400 mt-2">
+            Redirecting in 5 seconds...
+          </p>
+        </div>
       </div>
     );
   }
 
-  // 🛑 EMPTY QUOTE
+  // 🛑 EMPTY
   if (quoteItems.length === 0) {
     return (
-      <div className="p-6 text-center">
-        <h2 className="text-xl font-semibold mb-2">
-          Quote is empty
+      <div className="min-h-[80vh] flex flex-col items-center justify-center text-center pt-28 bg-gradient-to-b from-gray-50 to-white">
+        <h2 className="text-2xl font-semibold mb-2">
+          Your Quote is Empty
         </h2>
-        <p className="text-gray-500">
+        <p className="text-gray-500 mb-4">
           Add products to request a quote
         </p>
+        <button
+          onClick={() => navigate("/products")}
+          className="bg-purple-700 text-white px-6 py-3 rounded-xl hover:opacity-90"
+        >
+          Browse Products
+        </button>
       </div>
     );
   }
 
-  // 🧾 MAIN QUOTE PAGE
   return (
-    <div className="p-6 max-w-5xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">
-        Request a Quote
-      </h1>
+    <div className="bg-gradient-to-b from-gray-50 to-white min-h-screen pt-28 pb-12 px-4">
 
-      {/* QUOTE ITEMS */}
-      <div className="border rounded-lg p-4 mb-6">
-        {quoteItems.map((item) => (
-          <div
-            key={item.productId}
-            className="flex justify-between items-center border-b py-3"
-          >
-            <div>
-              <p className="font-medium">{item.name}</p>
-              <p className="text-sm text-gray-500">
-                Part No: {item.partNumber}
-              </p>
-            </div>
+      {/* HEADER */}
+      <div className="max-w-6xl mx-auto mb-8">
+        <h1 className="text-3xl font-bold text-gray-800">
+          Request a Quote
+        </h1>
+        <p className="text-gray-500 mt-1">
+          Review your selected products and submit your request
+        </p>
+      </div>
 
-            <div className="flex items-center gap-4">
-              <span>Qty: {item.quantity}</span>
-              <button
-                onClick={() => removeFromQuote(item.productId)}
-                className="text-red-600 text-sm"
+      {/* GRID */}
+      <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-8 items-start">
+
+        {/* LEFT */}
+        <div className="bg-white rounded-3xl shadow-lg border border-gray-100 p-6">
+          <h2 className="text-xl font-semibold mb-4">
+            Selected Products
+          </h2>
+
+          <div className="space-y-4">
+            {quoteItems.map((item) => (
+              <div
+                key={item.productId}
+                className="flex justify-between items-center border border-gray-100 rounded-xl p-4 hover:shadow-md hover:-translate-y-[2px] transition-all"
               >
-                Remove
-              </button>
-            </div>
+                <div>
+                  <p className="font-medium text-gray-800">
+                    {item.name}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Part No: {item.partNumber}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <span className="text-sm bg-gray-100 px-3 py-1 rounded-full">
+                    Qty: {item.quantity}
+                  </span>
+
+                  <button
+                    onClick={() => removeFromQuote(item.productId)}
+                    className="text-red-500 text-sm hover:underline"
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
+
+          <p className="text-sm text-gray-400 mt-4">
+            Total Items: {quoteItems.length}
+          </p>
+        </div>
+
+        {/* RIGHT */}
+        <div className="bg-white rounded-3xl shadow-lg border border-gray-100 p-6">
+          <h2 className="text-xl font-semibold mb-4">
+            Your Details
+          </h2>
+
+          <div className="space-y-4">
+
+            <input
+              name="name"
+              placeholder="Full Name"
+              value={form.name}
+              onChange={handleChange}
+              className="w-full border border-gray-200 bg-gray-50 p-3 rounded-xl focus:ring-2 focus:ring-purple-500 focus:bg-white outline-none transition"
+            />
+
+            <input
+              name="email"
+              type="email"
+              placeholder="Email Address"
+              value={form.email}
+              onChange={handleChange}
+              className="w-full border border-gray-200 bg-gray-50 p-3 rounded-xl focus:ring-2 focus:ring-purple-500 focus:bg-white outline-none transition"
+            />
+
+            <input
+              name="company"
+              placeholder="Company Name"
+              value={form.company}
+              onChange={handleChange}
+              className="w-full border border-gray-200 bg-gray-50 p-3 rounded-xl focus:ring-2 focus:ring-purple-500 focus:bg-white outline-none transition"
+            />
+
+            <button
+              onClick={handleSubmit}
+              disabled={submitting}
+              className="w-full bg-gradient-to-r from-purple-600 to-purple-800 text-white py-3 rounded-xl font-medium hover:shadow-lg transition disabled:opacity-50"
+            >
+              {submitting ? "Submitting..." : "Submit Quote"}
+            </button>
+
+          </div>
+        </div>
+
       </div>
-
-      {/* CUSTOMER DETAILS */}
-      <div className="border rounded-lg p-4 mb-6 space-y-4">
-        <input
-          name="name"
-          placeholder="Your Name"
-          value={form.name}
-          onChange={handleChange}
-          className="w-full border p-3 rounded"
-          required
-        />
-
-        <input
-          name="email"
-          type="email"
-          placeholder="Your Email"
-          value={form.email}
-          onChange={handleChange}
-          className="w-full border p-3 rounded"
-          required
-        />
-
-        <input
-          name="company"
-          placeholder="Company Name"
-          value={form.company}
-          onChange={handleChange}
-          className="w-full border p-3 rounded"
-        />
-      </div>
-
-      {/* SUBMIT BUTTON */}
-      <button
-        onClick={handleSubmit}
-        disabled={submitting}
-        className="w-full bg-purple-700 text-white py-3 rounded hover:opacity-90 disabled:opacity-50"
-      >
-        {submitting ? "Submitting..." : "Submit Quote"}
-      </button>
     </div>
   );
 }

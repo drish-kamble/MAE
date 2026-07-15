@@ -17,32 +17,15 @@ function Checkout() {
     address: "",
   });
 
-  if (cartItems.length === 0) {
-    return <p className="p-6 text-center">Your cart is empty.</p>;
-  }
-
-  const isFormValid = () =>
-    customer.name &&
-    customer.email &&
-    customer.phone &&
-    customer.address;
-
   const placeOrder = async () => {
-    if (!isFormValid()) {
-      setError("Please fill all required fields");
-      return;
-    }
-
     try {
       setPlacingOrder(true);
       setError("");
 
       const res = await fetch("http://localhost:5000/api/orders", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           customer,
           currency,
@@ -53,82 +36,110 @@ function Checkout() {
         }),
       });
 
-      const order = await res.json();
-      if (!res.ok) throw new Error(order.message || "Order failed");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
 
       clearCart();
-      navigate("/order-success", { state: { order } });
+      navigate("/order-success", { state: { order: data } });
     } catch (err) {
-      setError(err.message || "Order failed");
+      setError(err.message);
     } finally {
       setPlacingOrder(false);
     }
   };
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <h2 className="text-xl font-bold mb-6">Checkout</h2>
+    <div className="pt-24 px-6 max-w-7xl mx-auto grid md:grid-cols-2 gap-8">
+      {/* FORM */}
+      <div className="bg-white/80 backdrop-blur-md shadow-lg rounded-2xl p-6">
+        <h2 className="text-2xl font-bold mb-4">Shipping Details</h2>
 
-      {/* CUSTOMER FORM */}
-      <div className="grid gap-4 mb-6">
-        <input
-          placeholder="Full Name"
-          className="border p-3 rounded"
-          value={customer.name}
-          onChange={(e) =>
-            setCustomer({ ...customer, name: e.target.value })
-          }
-        />
-        <input
-          type="email"
-          placeholder="Email Address"
-          className="border p-3 rounded"
-          value={customer.email}
-          onChange={(e) =>
-            setCustomer({ ...customer, email: e.target.value })
-          }
-        />
-        <input
-          placeholder="Phone Number"
-          className="border p-3 rounded"
-          value={customer.phone}
-          onChange={(e) =>
-            setCustomer({ ...customer, phone: e.target.value })
-          }
-        />
-        <textarea
-          placeholder="Delivery Address"
-          className="border p-3 rounded"
-          rows="3"
-          value={customer.address}
-          onChange={(e) =>
-            setCustomer({ ...customer, address: e.target.value })
-          }
-        />
+        <div className="grid gap-4">
+          <input
+            placeholder="Full Name"
+            className="border p-3 rounded-lg focus:ring-2 focus:ring-purple-500"
+            value={customer.name}
+            onChange={(e) =>
+              setCustomer({ ...customer, name: e.target.value })
+            }
+          />
+
+          <input
+            type="email"
+            placeholder="Email"
+            className="border p-3 rounded-lg focus:ring-2 focus:ring-purple-500"
+            value={customer.email}
+            onChange={(e) =>
+              setCustomer({ ...customer, email: e.target.value })
+            }
+          />
+
+          <input
+            placeholder="Phone"
+            className="border p-3 rounded-lg focus:ring-2 focus:ring-purple-500"
+            value={customer.phone}
+            onChange={(e) =>
+              setCustomer({ ...customer, phone: e.target.value })
+            }
+          />
+
+          <textarea
+            placeholder="Address"
+            rows="3"
+            className="border p-3 rounded-lg focus:ring-2 focus:ring-purple-500"
+            value={customer.address}
+            onChange={(e) =>
+              setCustomer({ ...customer, address: e.target.value })
+            }
+          />
+        </div>
       </div>
 
-      {/* CURRENCY */}
-      <select
-        value={currency}
-        onChange={(e) => setCurrency(e.target.value)}
-        className="border p-3 rounded w-full mb-4"
-      >
-        <option value="INR">INR – India</option>
-        <option value="USD">USD – USA</option>
-        <option value="EUR">EUR – Europe</option>
-        <option value="GBP">GBP – UK</option>
-        <option value="SGD">SGD – Singapore</option>
-      </select>
+      {/* SUMMARY */}
+      <div className="bg-white/80 backdrop-blur-md shadow-lg rounded-2xl p-6">
+        <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
 
-      {error && <p className="text-red-600 mb-3">{error}</p>}
+        {cartItems.map((item) => (
+          <div key={item._id} className="mb-3">
+            <div className="flex justify-between text-sm">
+              <span>
+                {item.name} × {item.quantity}
+              </span>
+              <span>
+                ₹ {(item.price * item.quantity).toLocaleString("en-IN")}
+              </span>
+            </div>
 
-      <button
-        onClick={placeOrder}
-        disabled={placingOrder || !isFormValid()}
-        className="w-full bg-purple-700 text-white py-3 rounded"
-      >
-        {placingOrder ? "Placing Order..." : "Place Order"}
-      </button>
+            {/* PART NUMBER */}
+            <p className="text-xs text-gray-400">
+              Part No: {item.partNumber || "N/A"}
+            </p>
+          </div>
+        ))}
+
+        <div className="border-t my-4"></div>
+
+        <select
+          value={currency}
+          onChange={(e) => setCurrency(e.target.value)}
+          className="border p-2 rounded-lg w-full mb-4"
+        >
+          <option value="INR">INR</option>
+          <option value="USD">USD</option>
+          <option value="EUR">EUR</option>
+          <option value="SGD">SGD</option>
+        </select>
+
+        {error && <p className="text-red-500 mb-3">{error}</p>}
+
+        <button
+          onClick={placeOrder}
+          disabled={placingOrder}
+          className="w-full bg-gradient-to-r from-purple-600 to-purple-800 text-white py-3 rounded-xl shadow hover:scale-[1.02] transition"
+        >
+          {placingOrder ? "Processing..." : "Place Order"}
+        </button>
+      </div>
     </div>
   );
 }

@@ -2,20 +2,24 @@ import Order from "../models/Order.js";
 import Product from "../models/Product.js";
 import { sendAdminOrderEmail } from "../utils/emails/adminEmails.js";
 import { sendClientOrderEmail } from "../utils/emails/clientEmails.js";
+import Counter from "../models/Counter.js";
 
 /* ================= CREATE ORDER ================= */
 export const createOrder = async (req, res) => {
   try {
     const { items, customer, currency } = req.body;
 
+    // ✅ Validate items
     if (!items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({
         message: "Order must contain at least one item",
       });
     }
 
-    // Fetch products
+    // ✅ Extract product IDs
     const productIds = items.map((item) => item.productId);
+
+    // ✅ Fetch valid FIXED products
     const products = await Product.find({
       _id: { $in: productIds },
       pricingType: "FIXED",
@@ -27,13 +31,19 @@ export const createOrder = async (req, res) => {
       });
     }
 
-    // Build order items (INR prices only)
+    // ✅ Optimize lookup (O(1))
+    const productMap = new Map(
+      products.map((p) => [p._id.toString(), p])
+    );
+
     let subtotal = 0;
 
     const orderItems = items.map((item) => {
-      const product = products.find(
-        (p) => p._id.toString() === item.productId
-      );
+      const product = productMap.get(item.productId);
+
+      if (!product) {
+        throw new Error("Product not found");
+      }
 
       const lineTotal = product.price * item.quantity;
       subtotal += lineTotal;
@@ -48,25 +58,46 @@ export const createOrder = async (req, res) => {
       };
     });
 
-    const tax = subtotal * 0.18;
-    const total = subtotal + tax;
+    // ✅ Pricing (rounded)
+    const tax = Math.round(subtotal * 0.18);
+    const total = Math.round(subtotal + tax);
 
-    // 🔥 Currency comes from checkout (NOT product)
     const selectedCurrency = currency || "INR";
 
+    // ✅ Better order number
+    // ✅ NEW LOGIC (YEAR + MONTH + SEQUENCE)
+
+const now = new Date();
+const year = now.getFullYear();
+const month = String(now.getMonth() + 1).padStart(2, "0");
+
+// unique counter per month
+const counterName = `order-${year}-${month}`;
+
+const counter = await Counter.findOneAndUpdate(
+  { name: counterName },
+  { $inc: { value: 1 } },
+  { new: true, upsert: true }
+);
+
+// sequence padded
+const sequence = String(counter.value).padStart(6, "0");
+
+const orderNumber = `ORD-${year}-${month}-${sequence}`;
+
     const order = await Order.create({
-      orderNumber: `ORD-${Date.now()}`,
+      orderNumber,
       user: req.user._id,
       customer,
       items: orderItems,
       subtotal,
       tax,
-      total, // INR (source of truth)
+      total,
       currency: selectedCurrency,
       status: "created",
     });
 
-    // 🔔 Emails (non-blocking)
+    // ✅ Non-blocking emails
     sendAdminOrderEmail(order).catch(console.error);
     sendClientOrderEmail(order).catch(console.error);
 
@@ -74,7 +105,7 @@ export const createOrder = async (req, res) => {
   } catch (error) {
     console.error("Order creation error:", error);
     res.status(500).json({
-      message: "Failed to create order",
+      message: error.message || "Failed to create order",
     });
   }
 };
@@ -124,8 +155,10 @@ export const getAllOrders = async (req, res) => {
     }
 
     const orders = await Order.find().sort({ createdAt: -1 });
+
     res.json(orders);
   } catch (error) {
+    console.error("Fetch all orders error:", error);
     res.status(500).json({ message: "Failed to fetch orders" });
   }
 };

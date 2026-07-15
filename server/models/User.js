@@ -25,7 +25,7 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: true,
-      minlength: 6,
+      minlength: 8,
     },
 
     phone: {
@@ -34,12 +34,21 @@ const userSchema = new mongoose.Schema(
       match: [phoneRegex, "Phone number must include country code"],
     },
 
+    // ✅ Company name
     company: {
       type: String,
+      required: true,
       trim: true,
-      default: "",
     },
 
+    // ✅ NEW: Company address
+    companyAddress: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    // ✅ Location fields
     city: {
       type: String,
       trim: true,
@@ -52,10 +61,22 @@ const userSchema = new mongoose.Schema(
       default: "",
     },
 
+    // ✅ NEW
+    country: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
     role: {
       type: String,
       enum: ["user", "admin"],
       default: "user",
+    },
+
+    refreshToken: {
+      type: String,
+      default: null,
     },
   },
   { timestamps: true }
@@ -65,7 +86,7 @@ const userSchema = new mongoose.Schema(
 userSchema.pre("save", async function () {
   if (!this.isModified("password")) return;
 
-  const salt = await bcrypt.genSalt(10);
+  const salt = await bcrypt.genSalt(12);
   this.password = await bcrypt.hash(this.password, salt);
 });
 

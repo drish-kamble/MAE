@@ -5,10 +5,13 @@ function QuoteForm({ productName = "", productId = "" }) {
     name: "",
     email: "",
     company: "",
+    yourReference: "", // ✅ NEW
     message: productName
       ? `Product: ${productName}\n\n`
       : "",
   });
+
+  const [file, setFile] = useState(null); // ✅ NEW
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -17,33 +20,58 @@ function QuoteForm({ productName = "", productId = "" }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    await fetch("http://localhost:5000/api/quotes", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-  customer: {
-    name: form.name,
-    email: form.email,
-    company: form.company,
-  },
-  message: form.message, // ✅ ADD THIS
-  items: productId
-    ? [
-        {
-          productId,
-          name: productName,
-          partNumber: "—",
-          quantity: 1,
-        },
-      ]
-    : [],
-}),
+    try {
+      const formData = new FormData();
 
+      // ✅ SEND JSON AS STRING
+      formData.append(
+        "data",
+        JSON.stringify({
+          customer: {
+            name: form.name,
+            email: form.email,
+            company: form.company,
+          },
+          yourReference: form.yourReference, // ✅ INCLUDED
+          message: form.message,
+          items: productId
+            ? [
+                {
+                  productId,
+                  name: productName,
+                  partNumber: "—",
+                  quantity: 1,
+                },
+              ]
+            : [],
+        })
+      );
 
-    });
+      // ✅ FILE ATTACH
+      if (file) {
+        formData.append("attachment", file);
+      }
 
-    alert("Quote request submitted successfully!");
-    setForm({ name: "", email: "", company: "", message: "" });
+      await fetch("http://localhost:5000/api/quotes", {
+        method: "POST",
+        body: formData, // ❗ no JSON headers
+      });
+
+      alert("Quote request submitted successfully!");
+
+      setForm({
+        name: "",
+        email: "",
+        company: "",
+        yourReference: "",
+        message: "",
+      });
+      setFile(null);
+
+    } catch (err) {
+      console.error(err);
+      alert("Failed to submit quote");
+    }
   };
 
   return (
@@ -83,6 +111,15 @@ function QuoteForm({ productName = "", productId = "" }) {
         className="w-full border p-3 rounded"
       />
 
+      {/* ✅ NEW FIELD */}
+      <input
+        name="yourReference"
+        placeholder="Your Reference"
+        value={form.yourReference}
+        onChange={handleChange}
+        className="w-full border p-3 rounded"
+      />
+
       <textarea
         name="message"
         placeholder="Your Requirement"
@@ -91,6 +128,42 @@ function QuoteForm({ productName = "", productId = "" }) {
         onChange={handleChange}
         className="w-full border p-3 rounded"
       />
+
+      {/* 📎 FILE UPLOAD */}
+<div
+  onDragOver={(e) => e.preventDefault()}
+  onDrop={(e) => {
+    e.preventDefault();
+    const droppedFile = e.dataTransfer.files[0];
+    if (droppedFile) setFile(droppedFile);
+  }}
+  className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center bg-gray-50 hover:bg-gray-100 transition cursor-pointer"
+>
+  <p className="text-sm text-gray-500">
+    Drag & drop file here or click to upload
+  </p>
+
+  <input
+    type="file"
+    onChange={(e) => setFile(e.target.files[0])}
+    className="hidden"
+    id="fileUpload"
+  />
+
+  <label
+    htmlFor="fileUpload"
+    className="text-primary text-sm underline cursor-pointer"
+  >
+    Browse File
+  </label>
+
+  {/* ✅ SHOW FILE NAME */}
+  {file && (
+    <p className="mt-2 text-green-600 text-sm">
+      Selected: {file.name}
+    </p>
+  )}
+</div>
 
       <button
         type="submit"

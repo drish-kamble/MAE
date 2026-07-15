@@ -1,10 +1,19 @@
-/* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 
 const QuoteContext = createContext();
 
 export const QuoteProvider = ({ children }) => {
-  const [quoteItems, setQuoteItems] = useState([]);
+
+  // ✅ LOAD FROM LOCAL STORAGE
+  const [quoteItems, setQuoteItems] = useState(() => {
+    const saved = localStorage.getItem("quoteItems");
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  // ✅ SAVE TO LOCAL STORAGE (AUTO)
+  useEffect(() => {
+    localStorage.setItem("quoteItems", JSON.stringify(quoteItems));
+  }, [quoteItems]);
 
   const addToQuote = (product, quantity = 1) => {
     setQuoteItems((prev) => {
@@ -36,7 +45,10 @@ export const QuoteProvider = ({ children }) => {
     );
   };
 
-  const clearQuote = () => setQuoteItems([]);
+  const clearQuote = () => {
+    setQuoteItems([]);
+    localStorage.removeItem("quoteItems"); // ✅ CLEAN STORAGE
+  };
 
   return (
     <QuoteContext.Provider
