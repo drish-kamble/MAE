@@ -1,4 +1,4 @@
-const API_BASE = "https:/mae-api.vercel.app/";
+const API_BASE = "https://mae-api.vercel.app/api";
 
 /* ---------------- DEFAULT OPTIONS ---------------- */
 const defaultOptions = {

@@ -5,6 +5,10 @@ import { sendClientPaymentEmail } from "../utils/emails/clientEmails.js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
+console.log("NODE_ENV:", process.env.NODE_ENV);
+console.log("STRIPE_SECRET_KEY:", process.env.STRIPE_SECRET_KEY);
+console.log("STRIPE_WEBHOOK_SECRET:", process.env.STRIPE_WEBHOOK_SECRET);
+
 export const stripeWebhook = async (req, res) => {
   const sig = req.headers["stripe-signature"];
 
