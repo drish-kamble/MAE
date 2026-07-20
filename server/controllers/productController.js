@@ -11,6 +11,21 @@ export const getAllProducts = async (req, res) => {
 
     const query = {};
 
+    // ==========================
+    // 🔍 DEBUG LOGS
+    // ==========================
+    console.log("========== PRODUCT DEBUG ==========");
+    console.log("Database:", Product.db.name);
+    console.log("Collection:", Product.collection.name);
+
+    const totalProducts = await Product.countDocuments({});
+    console.log("Total Products in Collection:", totalProducts);
+
+    const firstProduct = await Product.findOne({});
+    console.log("First Product:", firstProduct);
+
+    console.log("===================================");
+
     // 🔍 Search
     if (search) {
       query.$or = [
@@ -24,34 +39,34 @@ export const getAllProducts = async (req, res) => {
       query.productType = type;
     }
 
+    console.log("Query:", query);
+
     // 📄 Pagination + Sorting
     const products = await Product.find(query)
-      .sort({ sequence: 1})
-      .skip((page - 1) * limit)
+      .sort({ sequence: 1 })
+      .skip((Number(page) - 1) * Number(limit))
       .limit(Number(limit));
 
+    console.log("Products Returned:", products.length);
+
     const total = await Product.countDocuments(query);
+
+    console.log("Filtered Count:", total);
 
     res.json({
       products,
       total,
       page: Number(page),
-      totalPages: Math.ceil(total / limit),
+      totalPages: Math.ceil(total / Number(limit)),
     });
 
   } catch (error) {
-    res.status(500).json({ message: "Error fetching products" });
+    console.error("❌ Product Controller Error:", error);
+    res.status(500).json({
+      message: "Error fetching products",
+      error: error.message,
+    });
   }
-
-  const count = await Product.countDocuments();
-console.log("========== DEBUG ==========");
-console.log("DB Name:", Product.db.name);
-console.log("Collection:", Product.collection.name);
-console.log("Count:", count);
-
-const first = await Product.findOne();
-console.log("First Product:", first);
-console.log("===========================");
 };
 
 export const getProductById = async (req, res) => {
@@ -64,6 +79,7 @@ export const getProductById = async (req, res) => {
 
     res.json(product);
   } catch (error) {
+    console.error(error);
     res.status(400).json({ message: "Invalid product ID" });
   }
 };
@@ -72,9 +88,9 @@ export const getProductTypes = async (req, res) => {
   try {
     const types = await Product.distinct("productType");
 
-    res.json(types.filter(Boolean)); // remove null/empty
-
+    res.json(types.filter(Boolean));
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: "Error fetching product types" });
   }
 };
