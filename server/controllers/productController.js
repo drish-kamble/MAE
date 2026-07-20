@@ -42,6 +42,16 @@ export const getAllProducts = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: "Error fetching products" });
   }
+
+  const count = await Product.countDocuments();
+console.log("========== DEBUG ==========");
+console.log("DB Name:", Product.db.name);
+console.log("Collection:", Product.collection.name);
+console.log("Count:", count);
+
+const first = await Product.findOne();
+console.log("First Product:", first);
+console.log("===========================");
 };
 
 export const getProductById = async (req, res) => {
