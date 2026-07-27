@@ -25,22 +25,35 @@ app.use(
 );
 
 /* =====================================================
-   🌍 NORMAL MIDDLEWARE (FIXED ✅)
+   🌍 NORMAL MIDDLEWARE
    ===================================================== */
+
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://mae-red.vercel.app",
+];
+
 app.use(
   cors({
+    origin(origin, callback) {
+      // Allow requests without an Origin header (Postman, curl, server-to-server)
+      if (!origin) return callback(null, true);
 
-    origin: [
-      "http://localhost:5173", // 🔥 frontend URL
-    "https://mae-red.vercel.app"
-    ],
-    credentials: true, // 🔥 allow cookies
+      if (
+        allowedOrigins.includes(origin) ||
+        origin.endsWith(".vercel.app")
+      ) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
   })
 );
 
-app.use(cookieParser()); // 🔥 MUST be before routes
+app.use(cookieParser());
 app.use(express.json());
-
 /* =====================================================
    🚦 RATE LIMITING (AUTH + PAYMENTS)
    ===================================================== */
