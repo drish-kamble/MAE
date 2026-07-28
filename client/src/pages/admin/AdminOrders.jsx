@@ -7,7 +7,7 @@ function AdminOrders() {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/orders", {
+        const res = await fetch("https://macroelectricals.onrender.com/api", {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
