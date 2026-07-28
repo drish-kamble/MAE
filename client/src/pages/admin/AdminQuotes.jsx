@@ -1,17 +1,16 @@
 import { useEffect, useState } from "react";
 import { Search } from "lucide-react";
 import QuoteCard from "../../components/admin/QuoteCard";
+import QuoteDrawer from "../../components/admin/QuoteDrawer";
 
 const API_BASE = "https://macroelectricals.onrender.com/api";
 
 function AdminQuotes() {
   const [quotes, setQuotes] = useState([]);
   const [filteredQuotes, setFilteredQuotes] = useState([]);
-
   const [loading, setLoading] = useState(true);
 
   const [search, setSearch] = useState("");
-
   const [statusFilter, setStatusFilter] = useState("ALL");
 
   const [selectedQuote, setSelectedQuote] = useState(null);
@@ -24,7 +23,7 @@ function AdminQuotes() {
     filterQuotes();
   }, [quotes, search, statusFilter]);
 
-  async function fetchQuotes() {
+  const fetchQuotes = async () => {
     try {
       setLoading(true);
 
@@ -36,32 +35,32 @@ function AdminQuotes() {
 
       setQuotes(data.quotes || []);
     } catch (err) {
-      console.error(err);
+      console.error("Failed to fetch quotes:", err);
     } finally {
       setLoading(false);
     }
-  }
+  };
 
-  function filterQuotes() {
+  const filterQuotes = () => {
     let list = [...quotes];
 
     if (statusFilter !== "ALL") {
-      list = list.filter((q) => q.status === statusFilter);
+      list = list.filter((quote) => quote.status === statusFilter);
     }
 
     if (search) {
       const value = search.toLowerCase();
 
       list = list.filter(
-        (q) =>
-          q.customer?.name?.toLowerCase().includes(value) ||
-          q.customer?.email?.toLowerCase().includes(value) ||
-          q.customer?.company?.toLowerCase().includes(value)
+        (quote) =>
+          quote.customer?.name?.toLowerCase().includes(value) ||
+          quote.customer?.email?.toLowerCase().includes(value) ||
+          quote.customer?.company?.toLowerCase().includes(value)
       );
     }
 
     setFilteredQuotes(list);
-  }
+  };
 
   return (
     <div className="space-y-8">
@@ -69,19 +68,13 @@ function AdminQuotes() {
       {/* Header */}
 
       <div>
-
         <h1 className="text-4xl font-bold">
-
           Quote Management
-
         </h1>
 
         <p className="text-gray-500 mt-2">
-
           View and manage all customer quote requests.
-
         </p>
-
       </div>
 
       {/* Search + Filter */}
@@ -107,7 +100,6 @@ function AdminQuotes() {
           onChange={(e) => setStatusFilter(e.target.value)}
           className="bg-white rounded-xl shadow px-5"
         >
-
           <option value="ALL">All Status</option>
           <option value="submitted">Submitted</option>
           <option value="reviewing">Reviewing</option>
@@ -115,47 +107,34 @@ function AdminQuotes() {
           <option value="won">Won</option>
           <option value="lost">Lost</option>
           <option value="closed">Closed</option>
-
         </select>
 
       </div>
 
-      {/* Count */}
+      {/* Quote Count */}
 
       <div>
-
         <p className="text-gray-600">
-
-          Showing
-
+          Showing{" "}
           <span className="font-bold text-primary">
-            {" "}
             {filteredQuotes.length}
-            {" "}
-          </span>
-
+          </span>{" "}
           quote requests
-
         </p>
-
       </div>
 
-      {/* Quote Cards */}
+      {/* Quotes */}
 
       {loading ? (
 
         <div className="text-center py-20">
-
           Loading Quotes...
-
         </div>
 
       ) : filteredQuotes.length === 0 ? (
 
-        <div className="bg-white rounded-xl shadow p-16 text-center">
-
+        <div className="bg-white rounded-xl shadow p-16 text-center text-gray-500">
           No Quote Requests Found
-
         </div>
 
       ) : (
@@ -175,6 +154,13 @@ function AdminQuotes() {
         </div>
 
       )}
+
+      {/* Quote Drawer */}
+
+      <QuoteDrawer
+        quote={selectedQuote}
+        onClose={() => setSelectedQuote(null)}
+      />
 
     </div>
   );
