@@ -153,19 +153,21 @@ export const loginUser = async (req, res) => {
     await user.save();
 
     // 🍪 SET COOKIES
-    res.cookie("accessToken", accessToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "strict",
-      maxAge: 15 * 60 * 1000,
-    });
+const cookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+};
 
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+res.cookie("accessToken", accessToken, {
+  ...cookieOptions,
+  maxAge: 15 * 60 * 1000,
+});
+
+res.cookie("refreshToken", refreshToken, {
+  ...cookieOptions,
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+});
 
     return res.json({
       success: true,
@@ -215,14 +217,16 @@ export const refreshAccessToken = async (req, res) => {
     const newAccessToken = generateAccessToken(user);
 
     // 🍪 update cookie
-    res.cookie("accessToken", newAccessToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "strict",
-      maxAge: 15 * 60 * 1000,
-    });
+    const cookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+};
 
-    return res.json({ success: true });
+res.cookie("accessToken", newAccessToken, {
+  ...cookieOptions,
+  maxAge: 15 * 60 * 1000,
+});
 
   } catch (error) {
     return res.status(403).json({
@@ -246,8 +250,14 @@ export const logoutUser = async (req, res) => {
     }
 
     // 🧹 clear cookies
-    res.clearCookie("accessToken");
-    res.clearCookie("refreshToken");
+    const cookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+};
+
+res.clearCookie("accessToken", cookieOptions);
+res.clearCookie("refreshToken", cookieOptions);
 
     return res.json({
       success: true,
