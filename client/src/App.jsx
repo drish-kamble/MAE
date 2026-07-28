@@ -20,6 +20,7 @@ import AdminQuotes from "./pages/admin/AdminQuotes";
 import MyOrders from "./pages/MyOrders";
 import OrderDetails from "./pages/OrderDetails";
 import Quote from "./pages/Quote";
+import AdminProducts from "./pages/admin/AdminProducts";
 
 
 function App() {
@@ -58,6 +59,7 @@ function App() {
                 }
               >
                 <Route index element={<AdminDashboard />} />
+                <Route path="products" element={<AdminProducts />} />
                 <Route path="orders" element={<AdminOrders />} />
                 <Route path="quotes" element={<AdminQuotes />} />
               </Route>

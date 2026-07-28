@@ -94,7 +94,13 @@ function Auth() {
         }
 
         login(res.user);
-        navigate(redirectTo, { replace: true });
+
+// Admin goes to Admin Dashboard
+if (res.user.role === "admin") {
+  navigate("/admin", { replace: true });
+} else {
+  navigate(redirectTo, { replace: true });
+}
 
       } else {
         const res = await registerUser(form);

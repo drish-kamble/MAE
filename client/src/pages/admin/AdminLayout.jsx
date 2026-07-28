@@ -1,13 +1,27 @@
 import { Outlet } from "react-router-dom";
 import AdminSidebar from "../../components/admin/AdminSidebar";
+import AdminHeader from "../../components/admin/AdminHeader";
 
 function AdminLayout() {
   return (
-    <div className="flex min-h-screen">
+    <div className="flex h-screen bg-gray-100">
+
+      {/* Sidebar */}
       <AdminSidebar />
-      <div className="flex-1 p-6 bg-gray-50">
-        <Outlet />
+
+      {/* Main Content */}
+      <div className="flex flex-col flex-1 overflow-hidden">
+
+        {/* Header */}
+        <AdminHeader />
+
+        {/* Page Content */}
+        <main className="flex-1 overflow-y-auto p-8">
+          <Outlet />
+        </main>
+
       </div>
+
     </div>
   );
 }

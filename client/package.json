@@ -13,6 +13,7 @@
     "@tailwindcss/line-clamp": "^0.4.4",
     "framer-motion": "^12.38.0",
     "git": "^0.1.5",
+    "lucide-react": "^1.27.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-phone-input-2": "^2.15.1",

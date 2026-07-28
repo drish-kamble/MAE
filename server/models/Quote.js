@@ -46,7 +46,12 @@ const quoteSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["submitted", "responded", "closed"],
+      enum: ["submitted",
+        "reviewing",
+        "quoted",
+        "won",
+        "lost",
+        "closed"],
       default: "submitted",
     },
   },

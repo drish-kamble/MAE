@@ -41,8 +41,15 @@ export const getAllQuotes = async (req, res) => {
       return res.status(403).json({ message: "Access denied" });
     }
 
-    const quotes = await Quote.find().sort({ createdAt: -1 });
-    res.json(quotes);
+    const quotes = await Quote.find()
+  .populate("items.productId", "name partNumber image")
+  .sort({ createdAt: -1 });
+
+res.json({
+  success: true,
+  quotes,
+  total: quotes.length,
+});
   } catch (error) {
     res.status(500).json({
       message: "Failed to fetch quotes",
