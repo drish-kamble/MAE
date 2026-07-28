@@ -18,3 +18,5 @@ transporter.verify((err) => {
     console.log("✅ Brevo SMTP Ready");
   }
 });
+console.log("EMAIL_USER:", EMAIL_CONFIG.user);
+console.log("SMTP HOST: smtp-relay.brevo.com");
