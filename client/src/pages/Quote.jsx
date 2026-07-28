@@ -35,7 +35,7 @@ function Quote() {
     setSubmitting(true);
 
     try {
-      await fetch("http://localhost:5000/api/quotes", {
+      await fetch("https://macroelectricals.onrender.com/api/quotes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -52,7 +52,7 @@ function QuoteForm({ productName = "", productId = "" }) {
         formData.append("attachment", file);
       }
 
-      await fetch("http://localhost:5000/api/quotes", {
+      await fetch("https://macroelectricals.onrender.com/api/quotes", {
         method: "POST",
         body: formData, // ❗ no JSON headers
       });

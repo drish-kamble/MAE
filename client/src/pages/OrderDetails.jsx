@@ -25,7 +25,7 @@ function OrderDetails() {
     setPaying(true);
 
     const res = await fetch(
-      "http://localhost:5000/api/payments/initiate",
+      "https://macroelectricals.onrender.com/api/payments/initiate",
       {
         method: "POST",
         credentials: "include", // 🔥 VERY IMPORTANT
@@ -53,7 +53,7 @@ function OrderDetails() {
 
         handler: async (response) => {
           await fetch(
-            "http://localhost:5000/api/payments/razorpay/verify",
+            "https://macroelectricals.onrender.com/api/payments/razorpay/verify",
             {
               method: "POST",
               credentials: "include",

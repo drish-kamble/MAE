@@ -1,6 +1,7 @@
 import { useCart } from "../context/CartContext";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { createOrder } from "../services/api";
 
 function Checkout() {
   const { cartItems, clearCart } = useCart();
@@ -22,22 +23,18 @@ function Checkout() {
       setPlacingOrder(true);
       setError("");
 
-      const res = await fetch("http://localhost:5000/api/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          customer,
-          currency,
-          items: cartItems.map((item) => ({
-            productId: item._id,
-            quantity: item.quantity,
-          })),
-        }),
-      });
+      const data = await createOrder({
+  customer,
+  currency,
+  items: cartItems.map((item) => ({
+    productId: item._id,
+    quantity: item.quantity,
+  })),
+});
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
+if (data.message) {
+  throw new Error(data.message);
+}
 
       clearCart();
       navigate("/order-success", { state: { order: data } });
