@@ -19,17 +19,54 @@ function QuoteDrawer({ quote, onClose }) {
 
         {/* Header */}
 
-        <div className="sticky top-0 bg-white border-b p-6 flex justify-between items-center">
+<div className="sticky top-0 bg-white border-b px-6 py-5 z-10">
 
-          <h2 className="text-2xl font-bold">
-            Quote Details
-          </h2>
+  <div className="flex justify-between items-start">
 
-          <button onClick={onClose}>
-            <X />
-          </button>
+    <div>
 
-        </div>
+      <h2 className="text-2xl font-bold">
+        {quote.customer?.name}
+      </h2>
+
+      <p className="text-gray-500 mt-1">
+        {quote.customer?.company || "No Company"}
+      </p>
+
+    </div>
+
+    <button
+      onClick={onClose}
+      className="hover:bg-gray-100 p-2 rounded-lg"
+    >
+      <X />
+    </button>
+
+  </div>
+
+  <div className="mt-5">
+
+    <span
+      className={`px-4 py-2 rounded-full text-sm font-semibold ${
+        quote.status === "submitted"
+          ? "bg-yellow-100 text-yellow-700"
+          : quote.status === "reviewing"
+          ? "bg-blue-100 text-blue-700"
+          : quote.status === "quoted"
+          ? "bg-purple-100 text-purple-700"
+          : quote.status === "won"
+          ? "bg-green-100 text-green-700"
+          : quote.status === "lost"
+          ? "bg-red-100 text-red-700"
+          : "bg-gray-200 text-gray-700"
+      }`}
+    >
+      {quote.status.toUpperCase()}
+    </span>
+
+  </div>
+
+</div>
 
         {/* Customer */}
 
@@ -37,47 +74,63 @@ function QuoteDrawer({ quote, onClose }) {
 
           <section>
 
-            <h3 className="font-bold text-lg mb-4">
-              Customer Information
-            </h3>
+  <h3 className="text-lg font-bold mb-4">
+    Customer Information
+  </h3>
 
-            <div className="space-y-2">
+  <div className="grid grid-cols-2 gap-4">
 
-              <p>
-                <strong>Name:</strong>{" "}
-                {quote.customer?.name}
-              </p>
+    <div className="bg-gray-50 rounded-xl p-4">
 
-              <p>
-                <strong>Company:</strong>{" "}
-                {quote.customer?.company}
-              </p>
+      <p className="text-xs uppercase tracking-wide text-gray-500">
+        Customer
+      </p>
 
-              <p>
-                <strong>Email:</strong>{" "}
-                {quote.customer?.email}
-              </p>
+      <p className="font-semibold mt-1">
+        {quote.customer?.name}
+      </p>
 
-              <p>
-                <strong>Phone:</strong>{" "}
-                {quote.customer?.phone}
-              </p>
+    </div>
 
-            </div>
+    <div className="bg-gray-50 rounded-xl p-4">
 
-          </section>
+      <p className="text-xs uppercase tracking-wide text-gray-500">
+        Company
+      </p>
 
-          <section>
+      <p className="font-semibold mt-1">
+        {quote.customer?.company || "-"}
+      </p>
 
-            <h3 className="font-bold text-lg mb-4">
-              Customer Reference
-            </h3>
+    </div>
 
-            <p>
-              {quote.yourReference || "-"}
-            </p>
+    <div className="bg-gray-50 rounded-xl p-4">
 
-          </section>
+      <p className="text-xs uppercase tracking-wide text-gray-500">
+        Email
+      </p>
+
+      <p className="font-semibold mt-1 break-all">
+        {quote.customer?.email}
+      </p>
+
+    </div>
+
+    <div className="bg-gray-50 rounded-xl p-4">
+
+      <p className="text-xs uppercase tracking-wide text-gray-500">
+        Phone
+      </p>
+
+      <p className="font-semibold mt-1">
+        {quote.customer?.phone}
+      </p>
+
+    </div>
+
+  </div>
+
+</section>
 
           <section>
 
@@ -136,28 +189,58 @@ function QuoteDrawer({ quote, onClose }) {
 
           <section>
 
-            <h3 className="font-bold text-lg mb-4">
-              Attachment
-            </h3>
+  <h3 className="text-lg font-bold mb-4">
+    Customer Attachment
+  </h3>
 
-            {quote.attachment ? (
+  {quote.attachment ? (
 
-              <a
-                href={quote.attachment}
-                target="_blank"
-                rel="noreferrer"
-                className="text-blue-600 underline"
-              >
-                View Attachment
-              </a>
+    <div className="bg-gray-50 rounded-xl p-5">
 
-            ) : (
+      <p className="text-sm text-gray-500 mb-4">
 
-              <p>No Attachment</p>
+        Customer uploaded a supporting document.
 
-            )}
+      </p>
 
-          </section>
+      <div className="flex gap-3">
+
+        {/* Preview */}
+
+        <a
+          href={quote.attachment}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex-1 bg-primary text-white text-center py-3 rounded-xl hover:opacity-90 transition"
+        >
+          👁 Preview
+        </a>
+
+        {/* Download */}
+
+        <a
+          href={quote.attachment}
+          download
+          className="flex-1 border border-primary text-primary text-center py-3 rounded-xl hover:bg-primary hover:text-white transition"
+        >
+          ⬇ Download
+        </a>
+
+      </div>
+
+    </div>
+
+  ) : (
+
+    <div className="bg-gray-100 rounded-xl p-5 text-gray-500 text-center">
+
+      No attachment uploaded.
+
+    </div>
+
+  )}
+
+</section>
 
           <section>
 
