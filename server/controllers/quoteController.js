@@ -78,3 +78,47 @@ export const getAllQuotes = async (req, res) => {
     });
   }
 };
+
+/* ================= ADMIN: UPDATE QUOTE STATUS ================= */
+
+export const updateQuoteStatus = async (req, res) => {
+  try {
+
+    if (req.user.role !== "admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied",
+      });
+    }
+
+    const { status } = req.body;
+
+    const quote = await Quote.findById(req.params.id);
+
+    if (!quote) {
+      return res.status(404).json({
+        success: false,
+        message: "Quote not found",
+      });
+    }
+
+    quote.status = status;
+
+    await quote.save();
+
+    res.json({
+      success: true,
+      quote,
+    });
+
+  } catch (err) {
+
+    console.error(err);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to update quote status",
+    });
+
+  }
+};

@@ -202,9 +202,10 @@ function AdminQuotes() {
       {/* Quote Drawer */}
 
       <QuoteDrawer
-        quote={selectedQuote}
-        onClose={() => setSelectedQuote(null)}
-      />
+  quote={selectedQuote}
+  onClose={() => setSelectedQuote(null)}
+  onStatusSave={handleStatusSave}
+/>
 
     </div>
   );
