@@ -7,7 +7,9 @@ const storage = new CloudinaryStorage({
   params: async (req, file) => ({
     folder: "mae-attachments",
     resource_type: "auto", // Supports PDFs and images
-    public_id: `${Date.now()}-${file.originalname.replace(/\s+/g, "_")}`,
+    public_id: `${Date.now()}-${file.originalname
+  .replace(/\.[^/.]+$/, "")
+  .replace(/\s+/g, "_")}`,
   }),
 });
 
