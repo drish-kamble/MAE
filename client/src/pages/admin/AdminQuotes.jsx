@@ -62,6 +62,50 @@ function AdminQuotes() {
     setFilteredQuotes(list);
   };
 
+  const handleStatusSave = async (id, status) => {
+
+    try {
+
+        const res = await fetch(
+            `${API_BASE}/quotes/${id}/status`,
+            {
+                method: "PATCH",
+                credentials: "include",
+                headers: {
+                    "Content-Type":"application/json",
+                },
+                body: JSON.stringify({ status }),
+            }
+        );
+
+        const data = await res.json();
+
+        if(data.success){
+
+            setQuotes((prev)=>
+                prev.map((q)=>
+                    q._id===id ? data.quote : q
+                )
+            );
+
+            setSelectedQuote(data.quote);
+
+        }else{
+
+            alert(data.message);
+
+        }
+
+    }catch(err){
+
+        console.error(err);
+
+        alert("Failed to update status.");
+
+    }
+
+};
+
   return (
     <div className="space-y-8">
 

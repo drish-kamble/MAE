@@ -1,183 +1,231 @@
-import { X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import {
+  X,
+  Mail,
+  Phone,
+  Building2,
+  User,
+  Package,
+  FileText,
+  Eye,
+  Download,
+} from "lucide-react";
 
-function QuoteDrawer({ quote, onClose }) {
+function QuoteDrawer({ quote, onClose, onStatusSave }) {
+  const [status, setStatus] = useState("submitted");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (quote) {
+      setStatus(quote.status || "submitted");
+    }
+  }, [quote]);
+
   if (!quote) return null;
+
+  const statusStyles = {
+    submitted: "bg-yellow-100 text-yellow-700",
+    reviewing: "bg-blue-100 text-blue-700",
+    quoted: "bg-purple-100 text-purple-700",
+    won: "bg-green-100 text-green-700",
+    lost: "bg-red-100 text-red-700",
+    closed: "bg-gray-200 text-gray-700",
+  };
+
+  const fileName = useMemo(() => {
+    if (!quote.attachment) return "";
+
+    return decodeURIComponent(
+      quote.attachment.split("/").pop()
+    );
+  }, [quote]);
+
+  const handleSave = async () => {
+    if (!onStatusSave) return;
+
+    try {
+      setSaving(true);
+
+      await onStatusSave(quote._id, status);
+
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <>
-
-      {/* Background */}
+      {/* Overlay */}
 
       <div
         onClick={onClose}
-        className="fixed inset-0 bg-black/40 z-40"
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
       />
 
       {/* Drawer */}
 
-      <div className="fixed top-0 right-0 w-[520px] h-screen bg-white shadow-2xl z-50 overflow-y-auto">
+      <div className="fixed top-0 right-0 w-[560px] max-w-full h-screen bg-white shadow-2xl z-50 flex flex-col">
 
         {/* Header */}
 
-<div className="sticky top-0 bg-white border-b px-6 py-5 z-10">
+        <div className="sticky top-0 bg-white border-b px-7 py-6 z-20">
 
-  <div className="flex justify-between items-start">
+          <div className="flex justify-between items-start">
 
-    <div>
+            <div>
 
-      <h2 className="text-2xl font-bold">
-        {quote.customer?.name}
-      </h2>
+              <h2 className="text-3xl font-bold">
+                {quote.customer?.name}
+              </h2>
 
-      <p className="text-gray-500 mt-1">
-        {quote.customer?.company || "No Company"}
-      </p>
+              <p className="text-gray-500 mt-1">
+                {quote.customer?.company || "No Company"}
+              </p>
 
-    </div>
+            </div>
 
-    <button
-      onClick={onClose}
-      className="hover:bg-gray-100 p-2 rounded-lg"
-    >
-      <X />
-    </button>
+            <button
+              onClick={onClose}
+              className="rounded-lg p-2 hover:bg-gray-100"
+            >
+              <X size={24} />
+            </button>
 
-  </div>
+          </div>
 
-  <div className="mt-5">
+          <div className="mt-5">
 
-    <span
-      className={`px-4 py-2 rounded-full text-sm font-semibold ${
-        quote.status === "submitted"
-          ? "bg-yellow-100 text-yellow-700"
-          : quote.status === "reviewing"
-          ? "bg-blue-100 text-blue-700"
-          : quote.status === "quoted"
-          ? "bg-purple-100 text-purple-700"
-          : quote.status === "won"
-          ? "bg-green-100 text-green-700"
-          : quote.status === "lost"
-          ? "bg-red-100 text-red-700"
-          : "bg-gray-200 text-gray-700"
-      }`}
-    >
-      {quote.status.toUpperCase()}
-    </span>
+            <span
+              className={`inline-flex px-4 py-2 rounded-full text-sm font-semibold capitalize ${
+                statusStyles[status]
+              }`}
+            >
+              {status}
+            </span>
 
-  </div>
+          </div>
 
-</div>
+        </div>
 
-        {/* Customer */}
+        {/* Scroll Area */}
 
-        <div className="p-6 space-y-8">
+        <div className="flex-1 overflow-y-auto p-7 space-y-8">
+
+          {/* Customer */}
 
           <section>
 
-  <h3 className="text-lg font-bold mb-4">
-    Customer Information
-  </h3>
-
-  <div className="grid grid-cols-2 gap-4">
-
-    <div className="bg-gray-50 rounded-xl p-4">
-
-      <p className="text-xs uppercase tracking-wide text-gray-500">
-        Customer
-      </p>
-
-      <p className="font-semibold mt-1">
-        {quote.customer?.name}
-      </p>
-
-    </div>
-
-    <div className="bg-gray-50 rounded-xl p-4">
-
-      <p className="text-xs uppercase tracking-wide text-gray-500">
-        Company
-      </p>
-
-      <p className="font-semibold mt-1">
-        {quote.customer?.company || "-"}
-      </p>
-
-    </div>
-
-    <div className="bg-gray-50 rounded-xl p-4">
-
-      <p className="text-xs uppercase tracking-wide text-gray-500">
-        Email
-      </p>
-
-      <p className="font-semibold mt-1 break-all">
-        {quote.customer?.email}
-      </p>
-
-    </div>
-
-    <div className="bg-gray-50 rounded-xl p-4">
-
-      <p className="text-xs uppercase tracking-wide text-gray-500">
-        Phone
-      </p>
-
-      <p className="font-semibold mt-1">
-        {quote.customer?.phone}
-      </p>
-
-    </div>
-
-  </div>
-
-</section>
-
-          <section>
-
-            <h3 className="font-bold text-lg mb-4">
-              Customer Message
+            <h3 className="text-xl font-bold mb-5">
+              Customer Information
             </h3>
 
-            <div className="bg-gray-100 rounded-xl p-4">
+            <div className="grid grid-cols-2 gap-4">
 
-              {quote.message || "No Message"}
+              <InfoCard
+                icon={<User size={18} />}
+                title="Customer"
+                value={quote.customer?.name}
+              />
+
+              <InfoCard
+                icon={<Building2 size={18} />}
+                title="Company"
+                value={quote.customer?.company || "-"}
+              />
+
+              <InfoCard
+                icon={<Mail size={18} />}
+                title="Email"
+                value={quote.customer?.email}
+              />
+
+              <InfoCard
+                icon={<Phone size={18} />}
+                title="Phone"
+                value={quote.customer?.phone}
+              />
 
             </div>
 
           </section>
 
+          {/* Message */}
+
           <section>
 
-            <h3 className="font-bold text-lg mb-4">
+            <h3 className="text-xl font-bold mb-4">
+              Customer Message
+            </h3>
+
+            <div className="rounded-2xl bg-gray-50 p-5">
+
+              {quote.message ? (
+                <p>{quote.message}</p>
+              ) : (
+                <p className="italic text-gray-400">
+                  No message provided.
+                </p>
+              )}
+
+            </div>
+
+          </section>
+
+          {/* Products */}
+
+          <section>
+
+            <h3 className="text-xl font-bold mb-4">
               Requested Products
             </h3>
 
-            <div className="space-y-3">
+            <div className="space-y-4">
 
               {quote.items.map((item, index) => (
 
                 <div
                   key={index}
-                  className="border rounded-xl p-4"
+                  className="border rounded-2xl p-5"
                 >
 
-                  <p className="font-semibold">
+                  <div className="flex items-center gap-3">
 
-                    {item.name}
+                    <Package
+                      className="text-primary"
+                      size={20}
+                    />
 
-                  </p>
+                    <h4 className="font-semibold text-lg">
 
-                  <p>
+                      {item.name}
 
-                    Part No: {item.partNumber}
+                    </h4>
 
-                  </p>
+                  </div>
 
-                  <p>
+                  <div className="grid grid-cols-2 gap-4 mt-4">
 
-                    Qty: {item.quantity}
+                    <div>
 
-                  </p>
+                      <p className="text-xs uppercase text-gray-500">
+                        Part Number
+                      </p>
+
+                      <p>{item.partNumber}</p>
+
+                    </div>
+
+                    <div>
+
+                      <p className="text-xs uppercase text-gray-500">
+                        Quantity
+                      </p>
+
+                      <p>{item.quantity}</p>
+
+                    </div>
+
+                  </div>
 
                 </div>
 
@@ -186,106 +234,145 @@ function QuoteDrawer({ quote, onClose }) {
             </div>
 
           </section>
+                    {/* Attachment */}
 
           <section>
 
-  <h3 className="text-lg font-bold mb-4">
-    Customer Attachment
-  </h3>
-
-  {quote.attachment ? (
-
-    <div className="bg-gray-50 rounded-xl p-5">
-
-      <p className="text-sm text-gray-500 mb-4">
-
-        Customer uploaded a supporting document.
-
-      </p>
-
-      <div className="flex gap-3">
-
-        {/* Preview */}
-
-        <a
-          href={quote.attachment}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex-1 bg-primary text-white text-center py-3 rounded-xl hover:opacity-90 transition"
-        >
-          👁 Preview
-        </a>
-
-        {/* Download */}
-
-        <a
-          href={quote.attachment}
-          download
-          className="flex-1 border border-primary text-primary text-center py-3 rounded-xl hover:bg-primary hover:text-white transition"
-        >
-          ⬇ Download
-        </a>
-
-      </div>
-
-    </div>
-
-  ) : (
-
-    <div className="bg-gray-100 rounded-xl p-5 text-gray-500 text-center">
-
-      No attachment uploaded.
-
-    </div>
-
-  )}
-
-</section>
-
-          <section>
-
-            <h3 className="font-bold text-lg mb-4">
-              Status
+            <h3 className="text-xl font-bold mb-4">
+              Customer Attachment
             </h3>
 
-            <select
-              defaultValue={quote.status}
-              className="w-full border rounded-xl p-3"
-            >
+            {quote.attachment ? (
 
-              <option value="submitted">
-                Submitted
-              </option>
+              <div className="border rounded-2xl p-5">
 
-              <option value="reviewing">
-                Reviewing
-              </option>
+                <div className="flex items-center gap-3">
 
-              <option value="quoted">
-                Quoted
-              </option>
+                  <FileText
+                    size={22}
+                    className="text-primary"
+                  />
 
-              <option value="won">
-                Won
-              </option>
+                  <div className="flex-1">
 
-              <option value="lost">
-                Lost
-              </option>
+                    <p className="font-semibold truncate">
+                      {fileName}
+                    </p>
 
-              <option value="closed">
-                Closed
-              </option>
+                    <p className="text-sm text-gray-500">
+                      Customer uploaded a document.
+                    </p>
 
-            </select>
+                  </div>
+
+                </div>
+
+                <div className="flex gap-3 mt-5">
+
+                  <a
+                    href={quote.attachment}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-primary py-3 text-white font-medium hover:opacity-90 transition"
+                  >
+                    <Eye size={18} />
+                    Preview
+                  </a>
+
+                  <a
+                    href={quote.attachment}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    download
+                    className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-primary py-3 text-primary font-medium hover:bg-primary hover:text-white transition"
+                  >
+                    <Download size={18} />
+                    Download
+                  </a>
+
+                </div>
+
+              </div>
+
+            ) : (
+
+              <div className="rounded-2xl bg-gray-100 p-5 text-center text-gray-500">
+
+                No attachment uploaded.
+
+              </div>
+
+            )}
 
           </section>
 
         </div>
 
+        {/* Sticky Footer */}
+
+        <div className="sticky bottom-0 border-t bg-white p-6">
+
+          <label className="block text-sm font-semibold mb-2">
+            Quote Status
+          </label>
+
+          <select
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+            className="w-full rounded-xl border p-3 outline-none focus:ring-2 focus:ring-primary"
+          >
+            <option value="submitted">Submitted</option>
+            <option value="reviewing">Reviewing</option>
+            <option value="quoted">Quoted</option>
+            <option value="won">Won</option>
+            <option value="lost">Lost</option>
+            <option value="closed">Closed</option>
+          </select>
+
+          <div className="flex gap-3 mt-5">
+
+            <button
+              onClick={onClose}
+              className="flex-1 rounded-xl border py-3 font-medium hover:bg-gray-100 transition"
+            >
+              Close
+            </button>
+
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="flex-1 rounded-xl bg-primary py-3 text-white font-medium hover:opacity-90 disabled:opacity-50 transition"
+            >
+              {saving ? "Saving..." : "Save Status"}
+            </button>
+
+          </div>
+
+        </div>
+
+      </div>
+    </>
+  );
+}
+
+/* ---------------- Info Card ---------------- */
+
+function InfoCard({ icon, title, value }) {
+  return (
+    <div className="rounded-2xl border bg-gray-50 p-4">
+
+      <div className="flex items-center gap-2 text-primary mb-2">
+        {icon}
+        <p className="text-xs uppercase tracking-wide text-gray-500">
+          {title}
+        </p>
       </div>
 
-    </>
+      <p className="font-semibold break-all">
+        {value || "-"}
+      </p>
+
+    </div>
   );
 }
 
