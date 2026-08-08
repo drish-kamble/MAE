@@ -36,7 +36,7 @@ export const sendAdminQuoteEmail = async (quote) => {
     : "";
 
   await transporter.sendMail({
-    from: `"MAE Electricals" <${EMAIL_CONFIG.user}>`,
+    from: EMAIL_CONFIG.from,
     to: EMAIL_CONFIG.staff,
 
     // ✅ ADDED (customer in CC)
@@ -121,7 +121,7 @@ export const sendAdminOrderEmail = async (order) => {
     .join("");
 
   await transporter.sendMail({
-    from: `"MAE Electricals" <${EMAIL_CONFIG.user}>`,
+    from: EMAIL_CONFIG.from,
     to: EMAIL_CONFIG.staff,
     subject: `New Order Received — ${order.orderNumber}`,
     html: `
@@ -147,7 +147,7 @@ export const sendAdminOrderEmail = async (order) => {
 
 export const sendAdminPaymentEmail = async (order) => {
   await transporter.sendMail({
-    from: `"MAE Electricals" <${EMAIL_CONFIG.user}>`,
+    from: EMAIL_CONFIG.from,
     to: EMAIL_CONFIG.staff,
     subject: `💰 Payment Received — ${order.orderNumber}`,
     html: `

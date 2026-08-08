@@ -34,7 +34,7 @@ export const sendClientQuoteEmail = async (quote) => {
     : "";
 
   await transporter.sendMail({
-    from: `"MAE Electricals" <${EMAIL_CONFIG.user}>`,
+    from: EMAIL_CONFIG.from,
     to: quote.customer?.email,
     subject: `Quote Request Received — ${quote.customer?.name || "Customer"}`,
     html: `
@@ -101,7 +101,7 @@ export const sendClientOrderEmail = async (order) => {
     .join("");
 
   await transporter.sendMail({
-    from: `"MAE Electricals" <${EMAIL_CONFIG.user}>`,
+    from: EMAIL_CONFIG.from,
     to: order.customer.email,
     subject: `Order Confirmation — ${order.orderNumber}`,
     html: `
@@ -142,7 +142,7 @@ export const sendClientOrderEmail = async (order) => {
 
 export const sendClientPaymentEmail = async (order) => {
   await transporter.sendMail({
-    from: `"MAE Electricals" <${EMAIL_CONFIG.user}>`,
+    from: EMAIL_CONFIG.from,
     to: order.customer.email,
     subject: `✅ Payment Successful — ${order.orderNumber}`,
     html: `
