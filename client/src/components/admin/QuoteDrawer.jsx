@@ -16,30 +16,29 @@ function QuoteDrawer({ quote, onClose, onStatusSave }) {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (quote) {
-      setStatus(quote.status || "submitted");
-    }
-  }, [quote]);
+  if (quote) {
+    setStatus(quote.status || "submitted");
+  }
+}, [quote]);
 
-  if (!quote) return null;
+const fileName = useMemo(() => {
+  if (!quote?.attachment) return "";
 
-  const statusStyles = {
-    submitted: "bg-yellow-100 text-yellow-700",
-    reviewing: "bg-blue-100 text-blue-700",
-    quoted: "bg-purple-100 text-purple-700",
-    won: "bg-green-100 text-green-700",
-    lost: "bg-red-100 text-red-700",
-    closed: "bg-gray-200 text-gray-700",
-  };
+  return decodeURIComponent(
+    quote.attachment.split("/").pop()
+  );
+}, [quote]);
 
-  const fileName = useMemo(() => {
-    if (!quote.attachment) return "";
+if (!quote) return null;
 
-    return decodeURIComponent(
-      quote.attachment.split("/").pop()
-    );
-  }, [quote]);
-
+const statusStyles = {
+  submitted: "bg-yellow-100 text-yellow-700",
+  reviewing: "bg-blue-100 text-blue-700",
+  quoted: "bg-purple-100 text-purple-700",
+  won: "bg-green-100 text-green-700",
+  lost: "bg-red-100 text-red-700",
+  closed: "bg-gray-200 text-gray-700",
+};
   const handleSave = async () => {
     if (!onStatusSave) return;
 
