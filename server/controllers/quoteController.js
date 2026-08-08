@@ -23,13 +23,13 @@ export const createQuote = async (req, res) => {
     await quote.save();
 
     // Send emails without blocking the response
-    sendAdminQuoteEmail(quote).catch((err) =>
-      console.error("Admin email failed:", err)
-    );
+    console.log("📧 Sending admin email...");
+await sendAdminQuoteEmail(quote);
+console.log("✅ Admin email sent");
 
-    sendClientQuoteEmail(quote).catch((err) =>
-      console.error("Client email failed:", err)
-    );
+console.log("📧 Sending client email...");
+await sendClientQuoteEmail(quote);
+console.log("✅ Client email sent");
 
     res.status(201).json({
       success: true,
