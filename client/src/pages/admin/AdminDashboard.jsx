@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   Package,
   ClipboardList,
@@ -7,39 +8,12 @@ import {
   AlertTriangle,
 } from "lucide-react";
 
-const stats = [
-  {
-    title: "Products",
-    value: "128",
-    icon: Package,
-    color: "bg-blue-500",
-  },
-  {
-    title: "Orders",
-    value: "54",
-    icon: ClipboardList,
-    color: "bg-green-500",
-  },
-  {
-    title: "Quotes",
-    value: "18",
-    icon: FileText,
-    color: "bg-purple-600",
-  },
-  {
-    title: "Customers",
-    value: "32",
-    icon: Users,
-    color: "bg-orange-500",
-  },
-];
+const API_BASE = "https://macroelectricals.onrender.com/api";
 
 function DashboardCard({ title, value, icon: Icon, color }) {
   return (
     <div className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all duration-300">
-
       <div className="flex justify-between items-center">
-
         <div>
           <p className="text-gray-500">{title}</p>
 
@@ -53,15 +27,92 @@ function DashboardCard({ title, value, icon: Icon, color }) {
         >
           <Icon size={32} />
         </div>
-
       </div>
     </div>
   );
 }
 
 function AdminDashboard() {
+  const [loading, setLoading] = useState(true);
+
+  const [stats, setStats] = useState({
+    products: 0,
+    orders: 0,
+    quotes: 0,
+    customers: 0,
+  });
+
+  const [recentOrders, setRecentOrders] = useState([]);
+  const [recentQuotes, setRecentQuotes] = useState([]);
+
+  useEffect(() => {
+    fetchDashboard();
+  }, []);
+
+  const fetchDashboard = async () => {
+    try {
+      setLoading(true);
+
+      const res = await fetch(
+        `${API_BASE}/admin/dashboard`,
+        {
+          credentials: "include",
+        }
+      );
+
+      const data = await res.json();
+
+      if (data.success) {
+        setStats(data.stats);
+        setRecentOrders(data.recentOrders);
+        setRecentQuotes(data.recentQuotes);
+      }
+    } catch (err) {
+      console.error("Dashboard Error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const dashboardCards = [
+    {
+      title: "Products",
+      value: stats.products,
+      icon: Package,
+      color: "bg-blue-500",
+    },
+    {
+      title: "Orders",
+      value: stats.orders,
+      icon: ClipboardList,
+      color: "bg-green-500",
+    },
+    {
+      title: "Quotes",
+      value: stats.quotes,
+      icon: FileText,
+      color: "bg-purple-600",
+    },
+    {
+      title: "Customers",
+      value: stats.customers,
+      icon: Users,
+      color: "bg-orange-500",
+    },
+  ];
+
+  if (loading) {
+    return (
+      <div className="text-center py-20 text-xl">
+        Loading Dashboard...
+      </div>
+    );
+  }
+
   return (
     <div>
+
+      {/* Header */}
 
       <div className="mb-10">
 
@@ -79,8 +130,11 @@ function AdminDashboard() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
 
-        {stats.map((card) => (
-          <DashboardCard key={card.title} {...card} />
+        {dashboardCards.map((card) => (
+          <DashboardCard
+            key={card.title}
+            {...card}
+          />
         ))}
 
       </div>
@@ -105,42 +159,55 @@ function AdminDashboard() {
 
           <div className="space-y-4">
 
-            {[1,2,3].map((i)=>(
-              <div
-                key={i}
-                className="flex justify-between border-b pb-3"
-              >
-                <div>
+            {recentOrders.length === 0 ? (
 
-                  <p className="font-medium">
-                    Order #{1000+i}
-                  </p>
+              <p className="text-gray-500">
+                No Orders Found
+              </p>
 
-                  <p className="text-sm text-gray-500">
-                    Customer Name
-                  </p>
+            ) : (
+
+              recentOrders.map((order) => (
+
+                <div
+                  key={order._id}
+                  className="flex justify-between border-b pb-3"
+                >
+
+                  <div>
+
+                    <p className="font-medium">
+                      {order.orderNumber}
+                    </p>
+
+                    <p className="text-sm text-gray-500">
+                      {order.customer?.name}
+                    </p>
+
+                  </div>
+
+                  <span className="text-green-600 font-semibold">
+                    ₹{order.total}
+                  </span>
 
                 </div>
 
-                <span className="text-green-600 font-semibold">
-                  ₹12,450
-                </span>
+              ))
 
-              </div>
-            ))}
+            )}
 
           </div>
 
         </div>
 
-        {/* Alerts */}
+        {/* Recent Quotes */}
 
         <div className="bg-white rounded-2xl shadow-lg p-6">
 
           <div className="flex justify-between items-center mb-5">
 
             <h2 className="text-xl font-semibold">
-              Notifications
+              Recent Quotes
             </h2>
 
             <AlertTriangle className="text-yellow-500" />
@@ -149,23 +216,38 @@ function AdminDashboard() {
 
           <div className="space-y-4">
 
-            <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded">
+            {recentQuotes.length === 0 ? (
 
-              New quote request received.
+              <p className="text-gray-500">
+                No Quotes Found
+              </p>
 
-            </div>
+            ) : (
 
-            <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded">
+              recentQuotes.map((quote) => (
 
-              New order placed successfully.
+                <div
+                  key={quote._id}
+                  className="border-l-4 border-primary bg-gray-50 p-4 rounded"
+                >
 
-            </div>
+                  <p className="font-semibold">
+                    {quote.customer?.name}
+                  </p>
 
-            <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+                  <p className="text-sm text-gray-500">
+                    {quote.customer?.company || "No Company"}
+                  </p>
 
-              Product database synced.
+                  <span className="inline-block mt-2 text-xs bg-primary/10 text-primary px-3 py-1 rounded-full capitalize">
+                    {quote.status}
+                  </span>
 
-            </div>
+                </div>
+
+              ))
+
+            )}
 
           </div>
 
